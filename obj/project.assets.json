@@ -1,0 +1,200 @@
+{
+  "version": 3,
+  "targets": {
+    "net8.0-windows7.0": {
+      "Magick.NET-Q8-AnyCPU/13.10.0": {
+        "type": "package",
+        "dependencies": {
+          "Magick.NET.Core": "13.10.0"
+        },
+        "compile": {
+          "lib/netstandard21/Magick.NET-Q8-AnyCPU.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard21/Magick.NET-Q8-AnyCPU.dll": {
+            "related": ".xml"
+          }
+        },
+        "build": {
+          "buildTransitive/netstandard20/Magick.NET-Q8-AnyCPU.targets": {}
+        },
+        "runtimeTargets": {
+          "runtimes/linux-arm64/native/Magick.Native-Q8-arm64.dll.so": {
+            "assetType": "native",
+            "rid": "linux-arm64"
+          },
+          "runtimes/linux-musl-x64/native/Magick.Native-Q8-x64.dll.so": {
+            "assetType": "native",
+            "rid": "linux-musl-x64"
+          },
+          "runtimes/linux-x64/native/Magick.Native-Q8-x64.dll.so": {
+            "assetType": "native",
+            "rid": "linux-x64"
+          },
+          "runtimes/osx-arm64/native/Magick.Native-Q8-arm64.dll.dylib": {
+            "assetType": "native",
+            "rid": "osx-arm64"
+          },
+          "runtimes/osx-x64/native/Magick.Native-Q8-x64.dll.dylib": {
+            "assetType": "native",
+            "rid": "osx-x64"
+          },
+          "runtimes/win-arm64/native/Magick.Native-Q8-arm64.dll": {
+            "assetType": "native",
+            "rid": "win-arm64"
+          },
+          "runtimes/win-x64/native/Magick.Native-Q8-x64.dll": {
+            "assetType": "native",
+            "rid": "win-x64"
+          },
+          "runtimes/win-x86/native/Magick.Native-Q8-x86.dll": {
+            "assetType": "native",
+            "rid": "win-x86"
+          }
+        }
+      },
+      "Magick.NET.Core/13.10.0": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard21/Magick.NET.Core.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard21/Magick.NET.Core.dll": {
+            "related": ".xml"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Magick.NET-Q8-AnyCPU/13.10.0": {
+      "sha512": "8ynATjfGcUrHTGGigz55xjO0rxrBPcuYnwX2+UqxrYD9MxkBxaqvN1xQlQI8Urhh0Rfin4UL9/erR/1CVKacuw==",
+      "type": "package",
+      "path": "magick.net-q8-anycpu/13.10.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Magick.NET.icon.png",
+        "Notice.linux-musl.txt",
+        "Notice.linux.txt",
+        "Notice.osx.txt",
+        "Notice.win.txt",
+        "build/netstandard20/Magick.NET-Q8-AnyCPU.targets",
+        "buildTransitive/netstandard20/Magick.NET-Q8-AnyCPU.targets",
+        "docs/Readme.md",
+        "lib/netstandard20/Magick.NET-Q8-AnyCPU.dll",
+        "lib/netstandard20/Magick.NET-Q8-AnyCPU.xml",
+        "lib/netstandard21/Magick.NET-Q8-AnyCPU.dll",
+        "lib/netstandard21/Magick.NET-Q8-AnyCPU.xml",
+        "magick.net-q8-anycpu.13.10.0.nupkg.sha512",
+        "magick.net-q8-anycpu.nuspec",
+        "runtimes/linux-arm64/native/Magick.Native-Q8-arm64.dll.so",
+        "runtimes/linux-musl-x64/native/Magick.Native-Q8-x64.dll.so",
+        "runtimes/linux-x64/native/Magick.Native-Q8-x64.dll.so",
+        "runtimes/osx-arm64/native/Magick.Native-Q8-arm64.dll.dylib",
+        "runtimes/osx-x64/native/Magick.Native-Q8-x64.dll.dylib",
+        "runtimes/win-arm64/native/Magick.Native-Q8-arm64.dll",
+        "runtimes/win-x64/native/Magick.Native-Q8-x64.dll",
+        "runtimes/win-x86/native/Magick.Native-Q8-x86.dll"
+      ]
+    },
+    "Magick.NET.Core/13.10.0": {
+      "sha512": "qss+Y4/K6SiGwbyCThqTl9ykevnSzFuT4AMIaymq8jN+6kimKjMHf4rvtagLWQ+vPH9xU1+pX6MmBOZe+D+fyA==",
+      "type": "package",
+      "path": "magick.net.core/13.10.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Copyright.txt",
+        "Magick.NET.icon.png",
+        "docs/Readme.md",
+        "lib/netstandard20/Magick.NET.Core.dll",
+        "lib/netstandard20/Magick.NET.Core.xml",
+        "lib/netstandard21/Magick.NET.Core.dll",
+        "lib/netstandard21/Magick.NET.Core.xml",
+        "magick.net.core.13.10.0.nupkg.sha512",
+        "magick.net.core.nuspec"
+      ]
+    }
+  },
+  "projectFileDependencyGroups": {
+    "net8.0-windows7.0": [
+      "Magick.NET-Q8-AnyCPU >= 13.10.0"
+    ]
+  },
+  "packageFolders": {
+    "C:\\Users\\Shayne Evans\\.nuget\\packages\\": {},
+    "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder": {}
+  },
+  "project": {
+    "version": "1.0.0",
+    "restore": {
+      "projectUniqueName": "E:\\Visual Studio\\SnippingToolClone\\BetterSnippingTool.csproj",
+      "projectName": "BetterSnippingTool",
+      "projectPath": "E:\\Visual Studio\\SnippingToolClone\\BetterSnippingTool.csproj",
+      "packagesPath": "C:\\Users\\Shayne Evans\\.nuget\\packages\\",
+      "outputPath": "E:\\Visual Studio\\SnippingToolClone\\obj\\",
+      "projectStyle": "PackageReference",
+      "fallbackFolders": [
+        "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
+      ],
+      "configFilePaths": [
+        "C:\\Users\\Shayne Evans\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+      ],
+      "originalTargetFrameworks": [
+        "net8.0-windows"
+      ],
+      "sources": {
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "https://api.nuget.org/v3/index.json": {}
+      },
+      "frameworks": {
+        "net8.0-windows7.0": {
+          "targetAlias": "net8.0-windows",
+          "projectReferences": {}
+        }
+      },
+      "warningProperties": {
+        "warnAsError": [
+          "NU1605"
+        ]
+      }
+    },
+    "frameworks": {
+      "net8.0-windows7.0": {
+        "targetAlias": "net8.0-windows",
+        "dependencies": {
+          "Magick.NET-Q8-AnyCPU": {
+            "target": "Package",
+            "version": "[13.10.0, )"
+          }
+        },
+        "imports": [
+          "net461",
+          "net462",
+          "net47",
+          "net471",
+          "net472",
+          "net48",
+          "net481"
+        ],
+        "assetTargetFallback": true,
+        "warn": true,
+        "frameworkReferences": {
+          "Microsoft.NETCore.App": {
+            "privateAssets": "all"
+          },
+          "Microsoft.WindowsDesktop.App.WindowsForms": {
+            "privateAssets": "none"
+          }
+        },
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.100/PortableRuntimeIdentifierGraph.json"
+      }
+    }
+  }
+}
