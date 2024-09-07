@@ -46,6 +46,14 @@
             "Magick.NET-Q8-AnyCPU": {
               "target": "Package",
               "version": "[13.10.0, )"
+            },
+            "SixLabors.ImageSharp": {
+              "target": "Package",
+              "version": "[3.1.5, )"
+            },
+            "WindowsAPICodePack": {
+              "target": "Package",
+              "version": "[8.0.4, )"
             }
           },
           "imports": [

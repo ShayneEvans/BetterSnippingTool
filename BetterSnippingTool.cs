@@ -4,6 +4,15 @@ using System.Collections.Generic;
 using ImageMagick;
 using System.Drawing; // For Bitmap
 using System.Drawing.Imaging;
+using System.IO;
+using Microsoft.WindowsAPICodePack.Taskbar;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Gif;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Processing.Processors.Quantization;
+using SixLabors.ImageSharp.Processing.Processors.Dithering;
+using SixLabors.ImageSharp.Formats.Tiff;
 
 //BetterSnippingTool form
 public class BetterSnippingTool : Form
@@ -11,8 +20,8 @@ public class BetterSnippingTool : Form
     //Current Screen Index used to switch between multiple displays with arrows keys, temp solution until find out how to highlight all windows (might be imp)
     private int currentScreenIndex;
     private bool isDragging = false;
-    private Point startPoint;
-    private Rectangle selectedArea;
+    private System.Drawing.Point startPoint;
+    private System.Drawing.Rectangle selectedArea;
     private bool isGIFMode = false;
     public enum SnipMode
     {
@@ -31,7 +40,7 @@ public class BetterSnippingTool : Form
         currentScreenIndex = getPrimaryScreenIndex();
 
         //Winform attributes
-        this.BackColor = Color.White;
+        this.BackColor = System.Drawing.Color.White;
         this.FormBorderStyle = FormBorderStyle.None;
         this.Cursor = CursorUtilities.LoadCustomCursor("Resources\\green_crosshair.png");
         this.Opacity = 0.50;
@@ -62,12 +71,12 @@ public class BetterSnippingTool : Form
     }
 
     //Returns the combined screen bounds of all displays
-    private Rectangle GetAllScreensBounds()
+    private System.Drawing.Rectangle GetAllScreensBounds()
     {
-        Rectangle allScreensBounds = Screen.AllScreens[0].Bounds;
+        System.Drawing.Rectangle allScreensBounds = Screen.AllScreens[0].Bounds;
         foreach (Screen screen in Screen.AllScreens)
         {
-            allScreensBounds = Rectangle.Union(allScreensBounds, screen.Bounds);
+            allScreensBounds = System.Drawing.Rectangle.Union(allScreensBounds, screen.Bounds);
         }
 
         return allScreensBounds;
@@ -83,7 +92,7 @@ public class BetterSnippingTool : Form
 
             if (currentSnipMode == SnipMode.FreeForm) 
             {
-                selectedArea = new Rectangle(startPoint.X, startPoint.Y, 0, 0);            
+                selectedArea = new System.Drawing.Rectangle(startPoint.X, startPoint.Y, 0, 0);            
             }
 
             this.Invalidate();
@@ -100,7 +109,7 @@ public class BetterSnippingTool : Form
                 case SnipMode.Rectangle:
                     int width = Math.Abs(e.X - startPoint.X);
                     int height = Math.Abs(e.Y - startPoint.Y);
-                    selectedArea = new Rectangle(
+                    selectedArea = new System.Drawing.Rectangle(
                         Math.Min(e.X, startPoint.X),
                         Math.Min(e.Y, startPoint.Y),
                         width,
@@ -138,8 +147,23 @@ public class BetterSnippingTool : Form
                     {
                         if(isGIFMode)
                         {
-                            List<Bitmap> screenshots = TakeScreenshotForGIF(24, 5);
-                            createMagickGIF(screenshots, 24);
+                            string outputDir = @"E:\Visual Studio\SnippingToolClone\bin\Release\net8.0-windows\GIF";
+                            this.Visible = false;
+                            var watch = System.Diagnostics.Stopwatch.StartNew();
+                            string tempDir = Path.Combine(Path.GetTempPath(), "BetterSnippingTool_GIF_Screenshots");
+                            CreateGIFScreenshots(24, 10, tempDir);
+                            //createMagickGIF(tempDir, 4);
+                            //2: 50 FPS, 4: 24 FPS, 3: 30 FPS
+                            //createImageSharpGIF_Stream(tempDir, 4);
+                            FFmpeg.run_command("E:\\Visual Studio\\SnippingToolClone\\ffmpeg\\ffmpeg.exe",
+                            $"-framerate 25 -i \"{Path.Combine(tempDir, "screenshot_%04d.png")}\" -vf \"palettegen\" -y \"{Path.Combine(outputDir, "palette.png")}\"");
+                            FFmpeg.run_command("E:\\Visual Studio\\SnippingToolClone\\ffmpeg\\ffmpeg.exe",
+                            $"-framerate 25 -i \"{Path.Combine(tempDir, "screenshot_%04d.png")}\" -i \"{Path.Combine(outputDir, "palette.png")}\" -filter_complex \"fps=25,format=rgba[p];[p][1:v]paletteuse\" -y \"{Path.Combine(outputDir, "output_25_pal.gif")}\"");
+                            watch.Stop();       
+                            var elapsedMs = watch.ElapsedMilliseconds;
+                            Console.WriteLine($"It took {elapsedMs} Ms");
+                            ClearTemp(tempDir);
+                            this.Close();
                         }
 
                         else
@@ -181,9 +205,9 @@ public class BetterSnippingTool : Form
     {
         base.OnPaint(e);
         e.Graphics.CompositingMode = CompositingMode.SourceCopy;
-        if (isDragging && selectedArea != Rectangle.Empty)
+        if (isDragging && selectedArea != System.Drawing.Rectangle.Empty)
         {
-            using (Pen pen = new Pen(Color.Red, 3))
+            using (Pen pen = new Pen(System.Drawing.Color.Red, 3))
             {
                 e.Graphics.DrawRectangle(pen, selectedArea);
             }
@@ -194,11 +218,13 @@ public class BetterSnippingTool : Form
     {
         using (Bitmap screenshot = new Bitmap(selectedArea.Width, selectedArea.Height))
         {
-            Screen selectedScreen = Screen.FromPoint(new Point(selectedArea.Left + this.Left, selectedArea.Top + this.Top));
+            Screen selectedScreen = Screen.FromPoint(new System.Drawing.Point(selectedArea.Left + this.Left, selectedArea.Top + this.Top));
 
             using (Graphics g = Graphics.FromImage(screenshot))
             {
-                g.CopyFromScreen(new Point(selectedArea.Left + selectedScreen.Bounds.Left, selectedArea.Top + selectedScreen.Bounds.Top), Point.Empty, selectedArea.Size);
+                g.CopyFromScreen(new System.Drawing.Point(selectedArea.Left + 
+                    selectedScreen.Bounds.Left, selectedArea.Top + 
+                    selectedScreen.Bounds.Top), System.Drawing.Point.Empty, selectedArea.Size);
             }
 
             // Hide the current form
@@ -209,52 +235,128 @@ public class BetterSnippingTool : Form
         }
     }
 
-    private List<Bitmap> TakeScreenshotForGIF(int FPS, int seconds)
+    //Deletes all contents from temp folder
+    private void ClearTemp(string tempDir)
     {
-        int interval = 1000 / FPS;
-        List<Bitmap> screenshots = new List<Bitmap>();
+        Array.ForEach(Directory.GetFiles(tempDir), File.Delete);
+    }
+
+    //Function that creates TEMP image folder for GIF creation
+    private void CreateGIFScreenshots(int FPS, int seconds, string tempDir)
+    {
+        //Creating folder in temp if it does not exist already
+        //Directory location: {DEFAULT_DRIVE}:\Users\{USER_NAME}\AppData\Local\Temp\BetterSnippingTool_GIF_Screenshots
+        if (!Directory.Exists(tempDir))
+        {
+            Directory.CreateDirectory(tempDir);
+        }
+
+        ClearTemp(tempDir);
 
         for (int i = 0; i < seconds * FPS; i++)
         {
-            Bitmap screenshot = new Bitmap(selectedArea.Width, selectedArea.Height);
-            Screen selectedScreen = Screen.FromPoint(new Point(selectedArea.Left + this.Left, selectedArea.Top + this.Top));
-
-            using (Graphics g = Graphics.FromImage(screenshot))
+            using (Bitmap screenshot = new Bitmap(selectedArea.Width, selectedArea.Height))
             {
-                g.CopyFromScreen(new Point(selectedArea.Left + selectedScreen.Bounds.Left, selectedArea.Top + selectedScreen.Bounds.Top), Point.Empty, selectedArea.Size);
-            }
-            
-            screenshots.Add(screenshot);
-            Thread.Sleep(interval);
+                Screen selectedScreen = Screen.FromPoint(new System.Drawing.Point(selectedArea.Left + this.Left, selectedArea.Top + this.Top));
+
+                using (Graphics g = Graphics.FromImage(screenshot))
+                {
+                    g.CopyFromScreen(new System.Drawing.Point(selectedArea.Left + 
+                        selectedScreen.Bounds.Left, selectedArea.Top + 
+                        selectedScreen.Bounds.Top), System.Drawing.Point.Empty, selectedArea.Size);
+                }
+
+                string filePath = Path.Combine(tempDir, $"screenshot_{i:D4}.png");
+                screenshot.Save(filePath, ImageFormat.Png);
+            }   
         }
-
-        Console.WriteLine(screenshots.Count);
-
-        return screenshots;
     }
 
-    private void createMagickGIF(List<Bitmap> screenshots, int FPS)
+    private void createMagickGIF(string tempDir, int delay)
     {
-        using (var collection = new MagickImageCollection())
+        var collection = new MagickImageCollection();
+        var imageFiles = Directory.GetFiles(tempDir).OrderBy(f => f).ToArray();
+        foreach (string imagePath in imageFiles)
         {
-            foreach (Bitmap screenshot in screenshots)
+            using (MagickImage image = new MagickImage(imagePath))
             {
-                using (var stream = new MemoryStream())
-                {
-                    screenshot.Save(stream, ImageFormat.Png);
-                    stream.Seek(0, SeekOrigin.Begin);
-
-                    var magickImage = new MagickImage(stream);
-                    collection.Add(magickImage);
-                    collection[collection.Count - 1].AnimationDelay = 100 / FPS;
-                }
+                image.AnimationDelay = delay;
+                var clonedImage = image.Clone();
+                collection.Add(clonedImage);
             }
-            collection.Coalesce(); // Ensures all frames are properly handled
-            collection.Write("GIF\\test.gif");
         }
+
+        //collection.Coalesce(); // Ensures all frames are properly handled
+        collection.Write("GIF\\test.gif");
+
         this.Close();
     }
 
+    private void createImageSharpGIF(string tempDir, int delay)
+    {
+        var imageFiles = Directory.GetFiles(tempDir).OrderBy(f => f).ToArray();
+        using (var gif = new Image<Rgba32>(1,1))
+        {
+            foreach (string imagePath in imageFiles)
+            {
+                using (var image = SixLabors.ImageSharp.Image.Load<Rgba32>(imagePath))
+                {
+                    if (gif.Width == 1 && gif.Height == 1)
+                    {
+                        gif.Mutate(x => x.Resize(image.Width, image.Height));
+                    }
+
+                    var clonedFrame = image.Clone();
+                    var gifFrameMetadata = clonedFrame.Frames.RootFrame.Metadata.GetGifMetadata();
+                    gifFrameMetadata.FrameDelay = delay; // Frame delay is in 1/100th of a second.
+                    gif.Frames.AddFrame(clonedFrame.Frames.RootFrame);
+                }
+            }
+
+            //Making the gif loop
+            gif.Metadata.GetGifMetadata().RepeatCount = 0;
+            gif.Frames.RemoveFrame(0); // Remove the first empty frame
+            gif.SaveAsGif("GIF\\ImageSharp.gif");
+        }
+    }
+
+
+    private void createImageSharpGIF_Stream(string tempDir, int delay)
+    {
+        var imageFiles = Directory.GetFiles(tempDir).OrderBy(f => f).ToArray();
+
+        // Create a temporary file to write the GIF to
+        using (var outputStream = new FileStream("GIF\\ImageSharp_Stream.gif", FileMode.Create, FileAccess.Write))
+        {
+            // Initialize the GIF with a dummy frame
+            using (var gif = new Image<Rgba32>(1, 1))
+            {
+                foreach (string imagePath in imageFiles)
+                {
+                    using (var imageStream = new FileStream(imagePath, FileMode.Open, FileAccess.Read))
+                    {
+                        using (var image = SixLabors.ImageSharp.Image.Load<Rgba32>(imageStream))
+                        {
+                            if (gif.Width == 1 && gif.Height == 1)
+                            {
+                                gif.Mutate(x => x.Resize(image.Width, image.Height));
+                            }
+                            var gifFrameMetadata = image.Frames.RootFrame.Metadata.GetGifMetadata();
+                            gifFrameMetadata.FrameDelay = delay; // Frame delay is in 1/100th of a second
+
+                            // Add the frame to the GIF
+                            gif.Frames.AddFrame(image.Frames.RootFrame);
+                        }
+                    }
+                }
+
+                // Making the gif loop
+                gif.Metadata.GetGifMetadata().RepeatCount = 0;
+                gif.Frames.RemoveFrame(0); // Remove the first empty frame
+                gif.SaveAsGif(outputStream);
+            }
+        }
+    }
 
 
 
