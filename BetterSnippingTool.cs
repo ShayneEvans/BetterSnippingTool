@@ -148,22 +148,13 @@ public class BetterSnippingTool : Form
                         if(isGIFMode)
                         {
                             string outputDir = @"E:\Visual Studio\SnippingToolClone\bin\Release\net8.0-windows\GIF";
-                            this.Visible = false;
-                            var watch = System.Diagnostics.Stopwatch.StartNew();
                             string tempDir = Path.Combine(Path.GetTempPath(), "BetterSnippingTool_GIF_Screenshots");
-                            CreateGIFScreenshots(24, 10, tempDir);
-                            //createMagickGIF(tempDir, 4);
-                            //2: 50 FPS, 4: 24 FPS, 3: 30 FPS
-                            //createImageSharpGIF_Stream(tempDir, 4);
-                            FFmpeg.run_command("E:\\Visual Studio\\SnippingToolClone\\ffmpeg\\ffmpeg.exe",
-                            $"-framerate 25 -i \"{Path.Combine(tempDir, "screenshot_%04d.png")}\" -vf \"palettegen\" -y \"{Path.Combine(outputDir, "palette.png")}\"");
-                            FFmpeg.run_command("E:\\Visual Studio\\SnippingToolClone\\ffmpeg\\ffmpeg.exe",
-                            $"-framerate 25 -i \"{Path.Combine(tempDir, "screenshot_%04d.png")}\" -i \"{Path.Combine(outputDir, "palette.png")}\" -filter_complex \"fps=25,format=rgba[p];[p][1:v]paletteuse\" -y \"{Path.Combine(outputDir, "output_25_pal.gif")}\"");
-                            watch.Stop();       
-                            var elapsedMs = watch.ElapsedMilliseconds;
-                            Console.WriteLine($"It took {elapsedMs} Ms");
-                            ClearTemp(tempDir);
-                            this.Close();
+                            this.Visible = false;
+                            using (GifCreatorForm gifCreatorForm = new GifCreatorForm(tempDir, outputDir, selectedArea, currentScreenIndex))
+                            {
+                                gifCreatorForm.FormClosed += (s, args) => this.Close();
+                                gifCreatorForm.ShowDialog();
+                            }
                         }
 
                         else
@@ -228,7 +219,7 @@ public class BetterSnippingTool : Form
             }
 
             // Hide the current form
-            ScreenshotForm screenshotForm = new ScreenshotForm(screenshot, currentScreenIndex);
+            MediaForm screenshotForm = new MediaForm(screenshot, currentScreenIndex);
             this.Hide();
             screenshotForm.Closed += (s, args) => this.Close();
             screenshotForm.Show();
@@ -271,94 +262,6 @@ public class BetterSnippingTool : Form
             }   
         }
     }
-
-    private void createMagickGIF(string tempDir, int delay)
-    {
-        var collection = new MagickImageCollection();
-        var imageFiles = Directory.GetFiles(tempDir).OrderBy(f => f).ToArray();
-        foreach (string imagePath in imageFiles)
-        {
-            using (MagickImage image = new MagickImage(imagePath))
-            {
-                image.AnimationDelay = delay;
-                var clonedImage = image.Clone();
-                collection.Add(clonedImage);
-            }
-        }
-
-        //collection.Coalesce(); // Ensures all frames are properly handled
-        collection.Write("GIF\\test.gif");
-
-        this.Close();
-    }
-
-    private void createImageSharpGIF(string tempDir, int delay)
-    {
-        var imageFiles = Directory.GetFiles(tempDir).OrderBy(f => f).ToArray();
-        using (var gif = new Image<Rgba32>(1,1))
-        {
-            foreach (string imagePath in imageFiles)
-            {
-                using (var image = SixLabors.ImageSharp.Image.Load<Rgba32>(imagePath))
-                {
-                    if (gif.Width == 1 && gif.Height == 1)
-                    {
-                        gif.Mutate(x => x.Resize(image.Width, image.Height));
-                    }
-
-                    var clonedFrame = image.Clone();
-                    var gifFrameMetadata = clonedFrame.Frames.RootFrame.Metadata.GetGifMetadata();
-                    gifFrameMetadata.FrameDelay = delay; // Frame delay is in 1/100th of a second.
-                    gif.Frames.AddFrame(clonedFrame.Frames.RootFrame);
-                }
-            }
-
-            //Making the gif loop
-            gif.Metadata.GetGifMetadata().RepeatCount = 0;
-            gif.Frames.RemoveFrame(0); // Remove the first empty frame
-            gif.SaveAsGif("GIF\\ImageSharp.gif");
-        }
-    }
-
-
-    private void createImageSharpGIF_Stream(string tempDir, int delay)
-    {
-        var imageFiles = Directory.GetFiles(tempDir).OrderBy(f => f).ToArray();
-
-        // Create a temporary file to write the GIF to
-        using (var outputStream = new FileStream("GIF\\ImageSharp_Stream.gif", FileMode.Create, FileAccess.Write))
-        {
-            // Initialize the GIF with a dummy frame
-            using (var gif = new Image<Rgba32>(1, 1))
-            {
-                foreach (string imagePath in imageFiles)
-                {
-                    using (var imageStream = new FileStream(imagePath, FileMode.Open, FileAccess.Read))
-                    {
-                        using (var image = SixLabors.ImageSharp.Image.Load<Rgba32>(imageStream))
-                        {
-                            if (gif.Width == 1 && gif.Height == 1)
-                            {
-                                gif.Mutate(x => x.Resize(image.Width, image.Height));
-                            }
-                            var gifFrameMetadata = image.Frames.RootFrame.Metadata.GetGifMetadata();
-                            gifFrameMetadata.FrameDelay = delay; // Frame delay is in 1/100th of a second
-
-                            // Add the frame to the GIF
-                            gif.Frames.AddFrame(image.Frames.RootFrame);
-                        }
-                    }
-                }
-
-                // Making the gif loop
-                gif.Metadata.GetGifMetadata().RepeatCount = 0;
-                gif.Frames.RemoveFrame(0); // Remove the first empty frame
-                gif.SaveAsGif(outputStream);
-            }
-        }
-    }
-
-
 
     // Method to move the form to the next screen
     private void MoveToNextScreen()

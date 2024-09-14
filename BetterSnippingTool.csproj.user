@@ -4,7 +4,10 @@
     <Compile Update="BetterSnippingTool.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Update="ScreenshotForm.cs">
+    <Compile Update="GifCreatorForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="MediaForm.cs">
       <SubType>Form</SubType>
     </Compile>
   </ItemGroup>

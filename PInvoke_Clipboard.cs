@@ -8,6 +8,7 @@ public static class PInvoke_Clipboard
     
     //A handle (pointer) to a bitmap (HBITMAP)
     const int CF_BITMAP = 2;
+    const int CF_HDROP = 15;
 
     [DllImport(dllName: "user32.dll")]
     private static extern bool OpenClipboard(IntPtr hWnd);

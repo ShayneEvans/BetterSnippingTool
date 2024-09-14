@@ -16,7 +16,6 @@ E:\Visual Studio\SnippingToolClone\bin\Release\net8.0-windows\runtimes\win-x86\n
 E:\Visual Studio\SnippingToolClone\obj\Release\net8.0-windows\BetterSnippingTool.csproj.AssemblyReference.cache
 E:\Visual Studio\SnippingToolClone\obj\Release\net8.0-windows\BetterSnippingTool.resources
 E:\Visual Studio\SnippingToolClone\obj\Release\net8.0-windows\Program.resources
-E:\Visual Studio\SnippingToolClone\obj\Release\net8.0-windows\ScreenshotForm.resources
 E:\Visual Studio\SnippingToolClone\obj\Release\net8.0-windows\BetterSnippingTool.csproj.GenerateResource.cache
 E:\Visual Studio\SnippingToolClone\obj\Release\net8.0-windows\BetterSnippingTool.GeneratedMSBuildEditorConfig.editorconfig
 E:\Visual Studio\SnippingToolClone\obj\Release\net8.0-windows\BetterSnippingTool.AssemblyInfoInputs.cache
@@ -35,3 +34,4 @@ E:\Visual Studio\SnippingToolClone\bin\Release\net8.0-windows\Microsoft.WindowsA
 E:\Visual Studio\SnippingToolClone\bin\Release\net8.0-windows\Microsoft.WindowsAPICodePack.Shell.dll
 E:\Visual Studio\SnippingToolClone\bin\Release\net8.0-windows\Microsoft.WindowsAPICodePack.ShellExtensions.dll
 E:\Visual Studio\SnippingToolClone\bin\Release\net8.0-windows\SixLabors.ImageSharp.dll
+E:\Visual Studio\SnippingToolClone\obj\Release\net8.0-windows\MediaForm.resources
