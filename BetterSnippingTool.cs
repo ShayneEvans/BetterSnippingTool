@@ -147,6 +147,16 @@ public class BetterSnippingTool : Form
                     {
                         if(isGIFMode)
                         {
+                           /* string outputDir = @"E:\Visual Studio\SnippingToolClone\bin\Release\net8.0-windows\GIF";
+                            MediaForm gifForm = new MediaForm(Path.Combine(outputDir, "output_25.gif"), currentScreenIndex);
+                            this.Hide();
+                            gifForm.FormClosed += (s, args) =>
+                            {
+                                // Explicitly call Dispose on both forms to ensure cleanup
+                                this.Dispose();
+                                gifForm.Dispose();
+                             };
+                             gifForm.Show();*/
                             string outputDir = @"E:\Visual Studio\SnippingToolClone\bin\Release\net8.0-windows\GIF";
                             string tempDir = Path.Combine(Path.GetTempPath(), "BetterSnippingTool_GIF_Screenshots");
                             this.Visible = false;
@@ -207,7 +217,7 @@ public class BetterSnippingTool : Form
 
     private void TakeScreenshotOfSelectedArea()
     {
-        using (Bitmap screenshot = new Bitmap(selectedArea.Width, selectedArea.Height))
+        using (Bitmap screenshot = new Bitmap(selectedArea.Width, selectedArea.Height, PixelFormat.Format24bppRgb))
         {
             Screen selectedScreen = Screen.FromPoint(new System.Drawing.Point(selectedArea.Left + this.Left, selectedArea.Top + this.Top));
 
@@ -256,6 +266,7 @@ public class BetterSnippingTool : Form
                         selectedScreen.Bounds.Left, selectedArea.Top + 
                         selectedScreen.Bounds.Top), System.Drawing.Point.Empty, selectedArea.Size);
                 }
+
 
                 string filePath = Path.Combine(tempDir, $"screenshot_{i:D4}.png");
                 screenshot.Save(filePath, ImageFormat.Png);

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Drawing.Drawing2D;
 using static System.Windows.Forms.DataFormats;
+using System.Resources;
 
 public class MediaForm : Form
 {
@@ -58,7 +59,7 @@ public class MediaForm : Form
 
         //Initializing drawing pen
         penColor = ColorTranslator.FromHtml("#0cff00");
-        penSize = 20;
+        penSize = 10;
         
         drawPen = new Pen(penColor, penSize)
         {
@@ -79,6 +80,7 @@ public class MediaForm : Form
         clonedBitmap = new Bitmap(drawingBitmap);
         undoStack.Push(clonedBitmap);
 
+        //pictureBox.Image = Image.FromFile("Resources\\SamplePNGImage_30mbmb.png");
         pictureBox.Image = clonedBitmap;
 
         CenterFormOnMonitor(monitorIndex);
@@ -108,7 +110,7 @@ public class MediaForm : Form
         //Controls
         this.Controls.Add(menuStrip);
         this.pictureBox = new System.Windows.Forms.PictureBox();
-
+        this.TransparencyKey = default;
         this.pictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
         this.pictureBox.Location = new System.Drawing.Point(0, 0);
         this.Controls.Add(this.pictureBox);
@@ -533,7 +535,7 @@ public class MediaForm : Form
 
 
 
-            if(!IsGifMode)
+            if (!IsGifMode)
             {
                 // Dispose of undo and redo stacks
                 while (undoStack.Count > 0)
