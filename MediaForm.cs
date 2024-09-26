@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Drawing.Drawing2D;
 using static System.Windows.Forms.DataFormats;
 using System.Resources;
+using System.Collections.Specialized;
 
 public class MediaForm : Form
 {
@@ -39,11 +40,16 @@ public class MediaForm : Form
     private Image gifImage;
     public bool IsGifMode { get; private set; }
 
-
-    //For GIFs
+    //For Gifs
     public MediaForm(string gifFilePath, int monitorIndex)
     {
         IsGifMode = true;
+
+        //Copying GIF to clipboard
+        StringCollection filePaths = new StringCollection();
+        filePaths.Add(gifFilePath);
+        Clipboard.SetFileDropList(filePaths);
+
         InitializeComponent();
         gifImage = Image.FromFile(gifFilePath);
         pictureBox.Image = gifImage;
@@ -98,8 +104,8 @@ public class MediaForm : Form
 
         fileMenuItem = new ToolStripMenuItem("File");
         fileMenuItem.DropDownItems.Add("New Snip", null, New_Snip_Click);
-        fileMenuItem.DropDownItems.Add("Save As", null, Save_As_Click);
         fileMenuItem.DropDownItems.Add("Set Default Directory", null, Set_Default_Directory_Click);
+        fileMenuItem.DropDownItems.Add("Save As", null, Save_As_Click);
         fileMenuItem.DropDownItems.Add("Exit", null, Close_Program);
 
         editMenuItem = new ToolStripMenuItem("Edit");
@@ -226,18 +232,33 @@ public class MediaForm : Form
     {
         using (SaveFileDialog saveFileDialog = new SaveFileDialog())
         {
-            saveFileDialog.Title = "Save As";
-            saveFileDialog.Filter = "PNG Files (*.png)|*.png|JPEG Files (*.jpg)|*.jpg|Bitmap Files (*.bmp)|*.bmp";
-
             //Use the saved directory from configuration if available
             if (!string.IsNullOrWhiteSpace(AppConfig.Instance.DefaultDirectory))
             {
                 saveFileDialog.InitialDirectory = AppConfig.Instance.DefaultDirectory;
             }
 
-            if (saveFileDialog.ShowDialog() == DialogResult.OK)
+            if (IsGifMode)
             {
-                drawingBitmap.Save(saveFileDialog.FileName);
+                saveFileDialog.Title = "Save As";
+                saveFileDialog.Filter = "GIF Files (*.gif)|*.gif|All Files (*.*)|*.*";
+                saveFileDialog.DefaultExt = "gif";
+                saveFileDialog.AddExtension = true;
+                if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    //Move file to the new directory with new name and delete the original
+                    gifImage.Save(saveFileDialog.FileName);
+                }
+            }
+
+            else
+            {
+                saveFileDialog.Title = "Save As";
+                saveFileDialog.Filter = "PNG Files (*.png)|*.png|JPEG Files (*.jpg)|*.jpg|Bitmap Files (*.bmp)|*.bmp";
+                if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    drawingBitmap.Save(saveFileDialog.FileName);
+                }
             }
         }
     }
@@ -469,6 +490,11 @@ public class MediaForm : Form
         MessageBox.Show("Help menu clicked");
     }
 
+    private void ClearGifFolder(string gifFilePath)
+    {
+        Array.ForEach(Directory.GetFiles(gifFilePath), File.Delete);
+    }
+
     private void Form_KeyDown(object? sender, KeyEventArgs e)
     {
         if (e.KeyCode == Keys.Escape)
@@ -532,7 +558,6 @@ public class MediaForm : Form
             newSnipItem.Click -= New_Snip_Click;
             modeItem.Click -= New_Snip_Click;
             saveItem.Click -= Save_As_Click;
-
 
 
             if (!IsGifMode)

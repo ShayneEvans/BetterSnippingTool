@@ -67,6 +67,8 @@ public class GifCreatorForm : Form
         this.Text = "GIF Creator";
         this.StartPosition = FormStartPosition.Manual;
         this.FormBorderStyle = FormBorderStyle.None;
+        int titleBarHeight = SystemInformation.CaptionHeight;
+        Console.WriteLine(titleBarHeight);
         this.BackColor = Color.LimeGreen;
         this.TransparencyKey = Color.LimeGreen;
         this.ResizeRedraw = true;

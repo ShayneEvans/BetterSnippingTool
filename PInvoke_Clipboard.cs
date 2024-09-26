@@ -69,7 +69,7 @@ public static class PInvoke_Clipboard
             if (!OpenClipboard(IntPtr.Zero))
                 throw new InvalidOperationException("Failed to open clipboard.");
 
-           if (!EmptyClipboard())
+            if (!EmptyClipboard())
                 throw new InvalidOperationException("Failed to empty clipboard.");
 
             // Set the bitmap data to the clipboard
