@@ -23,6 +23,10 @@ public class BetterSnippingTool : Form
     private System.Drawing.Point startPoint;
     private System.Drawing.Rectangle selectedArea;
     private bool isGIFMode = false;
+    private Panel modePanel;
+    private Label modeLabel;
+    private Font textFont = new Font("Arial", 20, FontStyle.Bold);
+
     public enum SnipMode
     {
         Rectangle,
@@ -30,6 +34,8 @@ public class BetterSnippingTool : Form
         FullScreen
     }
     private SnipMode currentSnipMode;
+
+
 
     public BetterSnippingTool(SnipMode snipMode = SnipMode.Rectangle)
     {
@@ -147,16 +153,6 @@ public class BetterSnippingTool : Form
                     {
                         if(isGIFMode)
                         {
-                           /* string outputDir = @"E:\Visual Studio\SnippingToolClone\bin\Release\net8.0-windows\GIF";
-                            MediaForm gifForm = new MediaForm(Path.Combine(outputDir, "output_25.gif"), currentScreenIndex);
-                            this.Hide();
-                            gifForm.FormClosed += (s, args) =>
-                            {
-                                // Explicitly call Dispose on both forms to ensure cleanup
-                                this.Dispose();
-                                gifForm.Dispose();
-                             };
-                             gifForm.Show();*/
                             string outputDir = @"E:\Visual Studio\SnippingToolClone\bin\Release\net8.0-windows\GIF";
                             string tempDir = Path.Combine(Path.GetTempPath(), "BetterSnippingTool_GIF_Screenshots");
                             this.Visible = false;
@@ -180,6 +176,21 @@ public class BetterSnippingTool : Form
         }
     }
 
+    private void drawModeText(Graphics g)
+    {
+        Screen selectedScreen = Screen.AllScreens[currentScreenIndex];
+        string currentMode = isGIFMode ? "GIF" : "Snip";
+        string otherMode = isGIFMode ? "Snip" : "GIF";
+
+        //Create the text to display
+        string displayText = $"Mode: {currentMode}, to switch to {otherMode} press 'g'.";
+
+        //Draw the text on the form
+        g.DrawString(displayText, textFont, new SolidBrush(System.Drawing.Color.Black),
+                new System.Drawing.PointF((selectedScreen.Bounds.Width - g.MeasureString(displayText, textFont).Width) / 2, 20));
+
+    }
+
     private void Form_KeyDown(object? sender, KeyEventArgs e)
     {
         if (e.KeyCode == Keys.Escape)
@@ -198,12 +209,14 @@ public class BetterSnippingTool : Form
 
         else if (e.KeyCode == Keys.G)
         {
-            isGIFMode = true;
+            isGIFMode = !isGIFMode;
+            this.Invalidate();
         }
     }
 
     protected override void OnPaint(PaintEventArgs e)
     {
+        drawModeText(e.Graphics);
         base.OnPaint(e);
         e.Graphics.CompositingMode = CompositingMode.SourceCopy;
         if (isDragging && selectedArea != System.Drawing.Rectangle.Empty)
@@ -213,6 +226,11 @@ public class BetterSnippingTool : Form
                 e.Graphics.DrawRectangle(pen, selectedArea);
             }
         }
+    }
+
+    private void Form1_Paint(object sender, PaintEventArgs e)
+    {
+
     }
 
     private void TakeScreenshotOfSelectedArea()
@@ -233,44 +251,6 @@ public class BetterSnippingTool : Form
             this.Hide();
             screenshotForm.Closed += (s, args) => this.Close();
             screenshotForm.Show();
-        }
-    }
-
-    //Deletes all contents from temp folder
-    private void ClearTemp(string tempDir)
-    {
-        Array.ForEach(Directory.GetFiles(tempDir), File.Delete);
-    }
-
-    //Function that creates TEMP image folder for GIF creation
-    private void CreateGIFScreenshots(int FPS, int seconds, string tempDir)
-    {
-        //Creating folder in temp if it does not exist already
-        //Directory location: {DEFAULT_DRIVE}:\Users\{USER_NAME}\AppData\Local\Temp\BetterSnippingTool_GIF_Screenshots
-        if (!Directory.Exists(tempDir))
-        {
-            Directory.CreateDirectory(tempDir);
-        }
-
-        ClearTemp(tempDir);
-
-        for (int i = 0; i < seconds * FPS; i++)
-        {
-            using (Bitmap screenshot = new Bitmap(selectedArea.Width, selectedArea.Height))
-            {
-                Screen selectedScreen = Screen.FromPoint(new System.Drawing.Point(selectedArea.Left + this.Left, selectedArea.Top + this.Top));
-
-                using (Graphics g = Graphics.FromImage(screenshot))
-                {
-                    g.CopyFromScreen(new System.Drawing.Point(selectedArea.Left + 
-                        selectedScreen.Bounds.Left, selectedArea.Top + 
-                        selectedScreen.Bounds.Top), System.Drawing.Point.Empty, selectedArea.Size);
-                }
-
-
-                string filePath = Path.Combine(tempDir, $"screenshot_{i:D4}.png");
-                screenshot.Save(filePath, ImageFormat.Png);
-            }   
         }
     }
 

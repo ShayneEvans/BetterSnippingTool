@@ -7,6 +7,9 @@
     <Compile Update="GifCreatorForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="GifSettingsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="MediaForm.cs">
       <SubType>Form</SubType>
     </Compile>

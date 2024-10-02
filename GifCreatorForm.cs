@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing.Imaging;
 using System.Linq;
@@ -13,51 +14,72 @@ public class GifCreatorForm : Form
     private System.Drawing.Rectangle selectedArea;
     private int borderSize = 5;
     private ProgressBar progressBar;
-    private System.Windows.Forms.Timer updateTimer;
-    private int totalScreenshots;
-    private int currentScreenshot = 0;
-    private MenuStrip gifCreatorBar;
+    private MenuStrip gifCreatorButtons;
     private ToolStripMenuItem playItem;
     private ToolStripMenuItem pauseItem;
+    private ToolStripMenuItem stopItem;
     private ToolStripMenuItem redoItem;
+    private ToolStripMenuItem settingsItem;
+    private ToolStripMenuItem exitItem;
     private Image playItemButton;
     private Image pauseItemButton;
+    private Image stopItemButton;
     private Image redoItemButton;
-    private int gifCreatorBarHeight = 100;
+    private Image settingsItemButton;
+    private Image exitItemButton;
+    private int gifCreatorButtonsHeight = 100;
     private Rectangle gifArea;
+    private BackgroundWorker backgroundWorker;
+    private string tempDir;
+    private string outputDir;
+    private bool _isPaused = false;
+    private bool _isStopped = false;
+    private int currentScreenIndex;
     public GifCreatorForm(string tempDir, string outputDir, System.Drawing.Rectangle selectedArea, int currentScreenIndex)
     {
         this.selectedArea = selectedArea;
+        this.outputDir = outputDir;
+        this.tempDir = tempDir;
+        this.currentScreenIndex = currentScreenIndex;
+        //borderSize / 2 to avoid red lines in gif output
         this.gifArea = new Rectangle(borderSize / 2, borderSize / 2, selectedArea.Width + borderSize, selectedArea.Height + borderSize);
         InitializeComponent();
-        this.StartPosition = FormStartPosition.Manual;
-        Screen selectedScreen = Screen.FromPoint(new System.Drawing.Point(selectedArea.Left + this.Left, selectedArea.Top + this.Top));
-        this.Location = new System.Drawing.Point(selectedArea.X + selectedScreen.Bounds.X -  borderSize, selectedArea.Y + selectedScreen.Bounds.Y - borderSize);
-        this.Paint += new PaintEventHandler(DrawCustomBorder);
 
-        Task.Run(async () =>
+        backgroundWorker = new BackgroundWorker
         {
-            (int, int) resizeResolution = obtainResizeResolution(selectedArea.Width, selectedArea.Height);
-            int framerate = 24;
-            int seconds = 5;
-            Console.WriteLine("Processing screenshots into GIF");
-            await Task.Run(() => CreateGIFScreenshots(framerate, 5, tempDir, selectedArea, resizeResolution.Item1, resizeResolution.Item2));
-            await Task.Run(() =>
-            {
-                FFmpeg.run_command("E:\\Visual Studio\\SnippingToolClone\\ffmpeg\\ffmpeg.exe",
-                $"-framerate {framerate} -i \"{Path.Combine(tempDir, "screenshot_%04d.png")}\" -vf \"palettegen=max_colors=256:reserve_transparent=0\" -y \"{Path.Combine(outputDir, "palette.png")}\"");
-                FFmpeg.run_command("E:\\Visual Studio\\SnippingToolClone\\ffmpeg\\ffmpeg.exe",
-                $"-framerate {framerate} -i \"{Path.Combine(tempDir, "screenshot_%04d.png")}\" -i \"{Path.Combine(outputDir, "palette.png")}\" -filter_complex \"fps={framerate},format=rgba,paletteuse=dither=sierra2_4a\" -y \"{Path.Combine(outputDir, $"output_{framerate}.gif")}\"");
-            });
+            WorkerReportsProgress = true,
+            WorkerSupportsCancellation = true
+        };
 
-            this.Invoke((Action)(() =>
-            {
-                MediaForm gifForm = new MediaForm(Path.Combine(outputDir, $"output_{framerate}.gif"), currentScreenIndex);
-                this.Hide();
-                gifForm.Closed += (s, args) => this.Close();
-                gifForm.Show();
-            }));
-        });
+        backgroundWorker.DoWork += backgroundWorker_DoWork;
+        Console.WriteLine(($"SELECTED AREA X AND Y: {(selectedArea.X, selectedArea.Y)}"));
+        this.StartPosition = FormStartPosition.Manual;
+        Screen selectedScreen = Screen.AllScreens[currentScreenIndex];
+        this.Location = new System.Drawing.Point(selectedArea.X + selectedScreen.Bounds.X -  borderSize, selectedArea.Y + selectedScreen.Bounds.Y - borderSize);
+        Console.WriteLine(($"location X AND Y: {(this.Location.X, this.Location.Y)}"));
+        this.Paint += new PaintEventHandler(DrawCustomBorder);
+    }
+
+    private void backgroundWorker_DoWork(object sender, DoWorkEventArgs e)
+    {
+        BackgroundWorker worker = sender as BackgroundWorker;
+        (int, int) resizeResolution = obtainResizeResolution(selectedArea.Width, selectedArea.Height);
+        int framerate = 24;
+        int seconds = 5;
+        Console.WriteLine("Processing screenshots into GIF");
+        CreateGIFScreenshots(framerate, seconds, tempDir, selectedArea, resizeResolution.Item1, resizeResolution.Item2, worker, e);
+        FFmpeg.run_command("E:\\Visual Studio\\SnippingToolClone\\ffmpeg\\ffmpeg.exe",
+        $"-framerate {framerate} -i \"{Path.Combine(tempDir, "screenshot_%04d.png")}\" -vf \"palettegen=max_colors=256:reserve_transparent=0\" -y \"{Path.Combine(outputDir, "palette.png")}\"");
+        FFmpeg.run_command("E:\\Visual Studio\\SnippingToolClone\\ffmpeg\\ffmpeg.exe",
+        $"-framerate {framerate} -i \"{Path.Combine(tempDir, "screenshot_%04d.png")}\" -i \"{Path.Combine(outputDir, "palette.png")}\" -filter_complex \"fps={framerate},format=rgba,paletteuse=dither=sierra2_4a\" -y \"{Path.Combine(outputDir, $"output_{framerate}.gif")}\"");
+
+        this.Invoke((Action)(() =>
+        {
+            MediaForm gifForm = new MediaForm(Path.Combine(outputDir, $"output_{framerate}.gif"), currentScreenIndex);
+            this.Hide();
+            gifForm.Closed += (s, args) => this.Close();
+            gifForm.Show();
+        }));
     }
 
     private void InitializeComponent()
@@ -77,14 +99,17 @@ public class GifCreatorForm : Form
         //Tool Strip Menu Items (Buttons)
         playItemButton = Image.FromFile("Resources\\Button_Images\\Play_Button.png");
         pauseItemButton = Image.FromFile("Resources\\Button_Images\\Pause_Button.png");
+        stopItemButton = Image.FromFile("Resources\\Button_Images\\Stop_Button.png");
         redoItemButton = Image.FromFile("Resources\\Button_Images\\Redo_Button.png");
+        settingsItemButton = Image.FromFile("Resources\\Button_Images\\Settings_Button.png");
+        exitItemButton = Image.FromFile("Resources\\Button_Images\\Exit_Button.png");
 
         playItem = new ToolStripMenuItem(playItemButton)
         {
             ImageAlign = ContentAlignment.TopCenter,
             ImageScaling = ToolStripItemImageScaling.None,
             BackColor = Color.LightBlue,
-            ToolTipText = "Create New Snip"
+            ToolTipText = "Create New GIF"
         };
 
         pauseItem = new ToolStripMenuItem(pauseItemButton)
@@ -92,7 +117,15 @@ public class GifCreatorForm : Form
             ImageAlign = ContentAlignment.TopCenter,
             ImageScaling = ToolStripItemImageScaling.None,
             BackColor = Color.LightBlue,
-            ToolTipText = "Change Mode"
+            ToolTipText = "Pause GIF Creation"
+        };
+
+        stopItem = new ToolStripMenuItem(stopItemButton)
+        {
+            ImageAlign = ContentAlignment.TopCenter,
+            ImageScaling = ToolStripItemImageScaling.None,
+            BackColor = Color.LightBlue,
+            ToolTipText = "Stop Image Processing, Begin GIF Creation"
         };
 
         redoItem = new ToolStripMenuItem(redoItemButton)
@@ -100,7 +133,23 @@ public class GifCreatorForm : Form
             ImageAlign = ContentAlignment.MiddleLeft,
             ImageScaling = ToolStripItemImageScaling.None,
             BackColor = Color.LightBlue,
+            ToolTipText = "Save GIF"
+        };
+
+        settingsItem = new ToolStripMenuItem(settingsItemButton)
+        {
+            ImageAlign = ContentAlignment.MiddleLeft,
+            ImageScaling = ToolStripItemImageScaling.None,
+            BackColor = Color.LightBlue,
             ToolTipText = "Save Screenshot"
+        };
+
+        exitItem = new ToolStripMenuItem(exitItemButton)
+        {
+            ImageAlign = ContentAlignment.TopCenter,
+            ImageScaling = ToolStripItemImageScaling.None,
+            BackColor = Color.LightBlue,
+            ToolTipText = "Exit Program"
         };
 
         progressBar = new ProgressBar()
@@ -112,49 +161,131 @@ public class GifCreatorForm : Form
             Style = ProgressBarStyle.Continuous
         };
 
-
-
         this.Controls.Add(progressBar); 
 
         //Adding gif creator bar
-        gifCreatorBar = new MenuStrip();
-        gifCreatorBar.Items.AddRange(new ToolStripMenuItem[] { playItem, pauseItem, redoItem });
-        gifCreatorBar.BackColor = Color.Gray;
-        gifCreatorBar.Dock = DockStyle.None;  // Disable automatic docking
-        gifCreatorBar.Location = new Point(borderSize / 2, progressBar.Bottom + borderSize / 2);
-        gifCreatorBar.Width = 500;
-        gifCreatorBar.Height = gifCreatorBarHeight;
-
-        this.Controls.Add(gifCreatorBar);
-
-        if (gifArea.Width < gifCreatorBar.Width)
+        gifCreatorButtons = new MenuStrip();
+        gifCreatorButtons.Items.AddRange(new ToolStripMenuItem[] { playItem, pauseItem, stopItem, redoItem, settingsItem, exitItem });
+        gifCreatorButtons.BackColor = Color.Gray;
+        gifCreatorButtons.Dock = DockStyle.None;  // Disable automatic docking
+        gifCreatorButtons.Width = 422;
+        gifCreatorButtons.Padding = new Padding(0);
+        gifCreatorButtons.Margin = new Padding(0);
+        if (gifArea.Width < gifCreatorButtons.Width)
         {
-            progressBar.Width = gifCreatorBar.Width;
+            Console.WriteLine("WEEEE");
+            progressBar.Width = gifCreatorButtons.Width;
         }
+
+        caculateCreatorButtonsSize();
+        //Position of gifCreatorButtons
+        if (gifCreatorButtons.Width < gifArea.Width) {
+            //Center according to progressBar
+            gifCreatorButtons.Location = new Point((progressBar.Width - gifCreatorButtons.Width) / 2, progressBar.Bottom + borderSize / 2);
+        }
+        else
+        {
+            gifCreatorButtons.Location = new Point(progressBar.Left, progressBar.Bottom + borderSize / 2);
+        }
+
+        gifCreatorButtons.Height = gifCreatorButtonsHeight;
+
+        this.Controls.Add(gifCreatorButtons);
 
         //Attach Event Handlers
         playItem.Click += playItem_Click;
         pauseItem.Click += pauseItem_Click;
+        stopItem.Click += stopItem_Click;
         redoItem.Click += redoItem_Click;
+        settingsItem.Click += settingsItem_Click;
+        exitItem.Click += exitItem_Click;
+        this.KeyDown += new KeyEventHandler(Form_KeyDown);
 
         //THE SIZE OF THE Winform
         this.Size = new Size(
-            gifArea.Width + 5 + gifCreatorBar.Width, // Width of the red square
-            gifArea.Height + progressBar.Height + gifCreatorBar.Height // Height of the red square plus the menu strip height
+            gifArea.Width + borderSize + gifCreatorButtons.Width, //Width
+            gifArea.Height + progressBar.Height + gifCreatorButtons.Height //Height
         );
     }
+
+    //Used to start work and resume
     private void playItem_Click(object? sender, EventArgs e)
     {
+        //Unpause if paused
+        if (_isPaused)
+        {
+            _isPaused = false;
+        }
+
         Console.WriteLine("playItem");
+        if (backgroundWorker.IsBusy != true)
+        {
+            //Start the asynchronous operation.
+            backgroundWorker.RunWorkerAsync();
+        }
+    }
+
+    private void caculateCreatorButtonsSize()
+    {
+        int totalWidth = 0;
+        int totalHeight = 0;
+
+        foreach (ToolStripItem item in gifCreatorButtons.Items)
+        {
+            // Get the size of the item
+            Size itemSize = item.Size; // You can also use item.GetPreferredSize(new Size(int.MaxValue, int.MaxValue)) if you want a more accurate size
+
+            // Accumulate the total width and height
+            totalWidth += itemSize.Width;
+            totalHeight = Math.Max(totalHeight, itemSize.Height); // Get the max height
+        }
+
+        // Display or use the total width and height
+        Console.WriteLine($"Total Width: {totalWidth}");
+        Console.WriteLine($"Max Height: {totalHeight}");
     }
 
     private void pauseItem_Click(object? sender, EventArgs e)
     {
         Console.WriteLine("pauseItem");
+        if (backgroundWorker.IsBusy == true)
+        {
+            _isPaused = true;
+        }
+    }
+
+    private void stopItem_Click(object? sender, EventArgs e)
+    {
+        Console.WriteLine("stopItem");
+        if (backgroundWorker.IsBusy == true)
+        {
+            _isStopped = true;
+        }
     }
     private void redoItem_Click(object? sender, EventArgs e)
     {
         Console.WriteLine("redoItem");
+        if (backgroundWorker.WorkerSupportsCancellation == true)
+        {
+            // Cancel the asynchronous operation.
+            backgroundWorker.CancelAsync();
+        }
+
+        BetterSnippingTool newSnip = new BetterSnippingTool();
+        this.Hide();
+        newSnip.Closed += (s, args) => this.Close();
+        newSnip.Show();
+    }
+
+    private void settingsItem_Click(object? sender, EventArgs e)
+    {
+        Console.WriteLine("settingsItem");
+    }
+
+    private void exitItem_Click(object? sender, EventArgs e)
+    {
+        Console.WriteLine("exitItem");
+        Environment.Exit(0);
     }
 
 
@@ -166,8 +297,6 @@ public class GifCreatorForm : Form
             e.Graphics.DrawRectangle(redPen, gifArea);
         }
     }
-
-
 
     //Deletes all contents from temp folder
     private void ClearTemp(string tempDir)
@@ -209,8 +338,9 @@ public class GifCreatorForm : Form
     }
 
     //Creates resized screenshots for GIF creation
-    private void CreateGIFScreenshots(int FPS, int seconds, string tempDir, System.Drawing.Rectangle selectedArea, int resizeWidth, int resizeHeight)
+    private void CreateGIFScreenshots(int FPS, int seconds, string tempDir, System.Drawing.Rectangle selectedArea, int resizeWidth, int resizeHeight, BackgroundWorker worker, DoWorkEventArgs e)
     {
+        Console.WriteLine("n word we made it skrrrrt");
         int totalIterations = seconds * FPS;
         int delay = 1000 / FPS;
 
@@ -229,6 +359,23 @@ public class GifCreatorForm : Form
 
             for (int i = 0; i < totalIterations; i++)
             {
+                //Pausing functionality
+                while (_isPaused)
+                {
+                    //Check if cancellation was requested while paused
+                    if (worker.CancellationPending)
+                    {
+                        e.Cancel = true;
+                        return;
+                    }
+                    System.Threading.Thread.Sleep(100); // Pause loop, but allow UI responsiveness
+                }
+
+                if(_isStopped)
+                {
+                    break;
+                }
+
                 long frameStartTime = stopwatch.ElapsedMilliseconds;
                 //Updates progress bar every 10 iterations
                 if (i % 10 == 0)
@@ -274,6 +421,43 @@ public class GifCreatorForm : Form
         }
     }
 
+    private void Form_KeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.KeyCode == Keys.Escape)
+        {
+            Environment.Exit(0);
+        }
+
+        else if (e.KeyCode == Keys.D1)
+        {
+            playItem_Click(sender, e);
+        }
+        else if (e.KeyCode == Keys.D2)
+        {
+            pauseItem_Click(sender, e);
+        }
+
+        else if (e.KeyCode == Keys.D3)
+        {
+            stopItem_Click(sender, e);
+        }
+
+        else if (e.KeyCode == Keys.D4)
+        {
+            redoItem_Click(sender, e);
+        }
+
+        else if (e.KeyCode == Keys.D5)
+        {
+            settingsItem_Click(sender, e);
+        }
+
+        else if (e.KeyCode == Keys.D0)
+        {
+            exitItem_Click(sender, e);
+        }
+    }
+
     public new void Dispose()
     {
         Dispose(true);
@@ -290,19 +474,21 @@ public class GifCreatorForm : Form
 
         if (disposing)
         {
-            // Unsubscribe event handlers
-            //this.FormClosing -= MainForm_FormClosing;
-            //this.KeyDown -= Form_KeyDown;
+            this.KeyDown -= Form_KeyDown;
             playItem.Click -= playItem_Click;
             pauseItem.Click -= pauseItem_Click;
+            stopItem.Click -= stopItem_Click;
             redoItem.Click -= redoItem_Click;
-            // Dispose of controls and resources
+            settingsItem.Click -= settingsItem_Click;
+            exitItem.Click -= exitItem_Click;
             playItemButton?.Dispose();
             pauseItemButton?.Dispose();
+            stopItemButton?.Dispose();
             redoItemButton?.Dispose();
-
+            settingsItemButton?.Dispose();
+            exitItemButton?.Dispose();
             progressBar?.Dispose();
-            gifCreatorBar?.Dispose();
+            gifCreatorButtons?.Dispose();
         }
 
         base.Dispose(disposing);
