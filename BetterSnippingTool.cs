@@ -49,7 +49,7 @@ public class BetterSnippingTool : Form
         this.BackColor = System.Drawing.Color.White;
         this.FormBorderStyle = FormBorderStyle.None;
         this.Cursor = CursorUtilities.LoadCustomCursor("Resources\\green_crosshair.png");
-        this.Opacity = 0.50;
+        this.Opacity = 0.40;
         this.TopMost = true;
         this.Bounds = GetAllScreensBounds();
         this.DoubleBuffered = false;

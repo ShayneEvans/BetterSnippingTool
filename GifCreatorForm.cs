@@ -27,9 +27,9 @@ public class GifCreatorForm : Form
     private Image redoItemButton;
     private Image settingsItemButton;
     private Image exitItemButton;
-    private int gifCreatorButtonsHeight = 100;
     private Rectangle gifArea;
     private BackgroundWorker backgroundWorker;
+    private int titleBarHeight;
     private string tempDir;
     private string outputDir;
     private bool _isPaused = false;
@@ -37,6 +37,7 @@ public class GifCreatorForm : Form
     private int currentScreenIndex;
     public GifCreatorForm(string tempDir, string outputDir, System.Drawing.Rectangle selectedArea, int currentScreenIndex)
     {
+        this.titleBarHeight = SystemInformation.CaptionHeight;
         this.selectedArea = selectedArea;
         this.outputDir = outputDir;
         this.tempDir = tempDir;
@@ -52,11 +53,28 @@ public class GifCreatorForm : Form
         };
 
         backgroundWorker.DoWork += backgroundWorker_DoWork;
-        Console.WriteLine(($"SELECTED AREA X AND Y: {(selectedArea.X, selectedArea.Y)}"));
         this.StartPosition = FormStartPosition.Manual;
         Screen selectedScreen = Screen.AllScreens[currentScreenIndex];
-        this.Location = new System.Drawing.Point(selectedArea.X + selectedScreen.Bounds.X -  borderSize, selectedArea.Y + selectedScreen.Bounds.Y - borderSize);
-        Console.WriteLine(($"location X AND Y: {(this.Location.X, this.Location.Y)}"));
+        this.Location = new System.Drawing.Point(
+            selectedArea.X + selectedScreen.Bounds.X - borderSize - 8,
+            selectedArea.Y + selectedScreen.Bounds.Y - borderSize - titleBarHeight - 8
+        );
+        //this.Location = new System.Drawing.Point(selectedArea.X + selectedScreen.Bounds.X - borderSize, selectedArea.Y + selectedScreen.Bounds.Y - borderSize);
+        // Debugging output
+        Console.WriteLine($"Selected Area: {selectedArea}");
+        Console.WriteLine($"Selected Screen Bounds: {selectedScreen.Bounds}");
+        Console.WriteLine($"Border Size: {borderSize}");
+        Console.WriteLine($"Title Bar Height: {titleBarHeight}");
+
+        // Calculate the location
+        int calculatedX = selectedArea.X + selectedScreen.Bounds.X - borderSize;
+        int calculatedY = selectedArea.Y + selectedScreen.Bounds.Y - borderSize - titleBarHeight;
+
+        // Log the calculated position
+        Console.WriteLine($"Calculated Location: X = {calculatedX}, Y = {calculatedY}");
+
+
+        Console.WriteLine($"Form Location: {this.Location}");
         this.Paint += new PaintEventHandler(DrawCustomBorder);
     }
 
@@ -88,9 +106,9 @@ public class GifCreatorForm : Form
         this.Icon = new Icon("Resources\\BS_Logo.ico");
         this.Text = "GIF Creator";
         this.StartPosition = FormStartPosition.Manual;
-        this.FormBorderStyle = FormBorderStyle.None;
-        int titleBarHeight = SystemInformation.CaptionHeight;
-        Console.WriteLine(titleBarHeight);
+        //this.FormBorderStyle = FormBorderStyle.None;
+        this.ControlBox = false;
+        this.FormBorderStyle = FormBorderStyle.FixedSingle;
         this.BackColor = Color.LimeGreen;
         this.TransparencyKey = Color.LimeGreen;
         this.ResizeRedraw = true;
@@ -166,30 +184,13 @@ public class GifCreatorForm : Form
         //Adding gif creator bar
         gifCreatorButtons = new MenuStrip();
         gifCreatorButtons.Items.AddRange(new ToolStripMenuItem[] { playItem, pauseItem, stopItem, redoItem, settingsItem, exitItem });
+        (int totalGifCreatorButtonsWidth, int totalGifCreatorButtonsHeight) = caculateCreatorButtonsSize();
+        gifCreatorButtons.Width = totalGifCreatorButtonsWidth;
+        gifCreatorButtons.Height = totalGifCreatorButtonsHeight;
         gifCreatorButtons.BackColor = Color.Gray;
         gifCreatorButtons.Dock = DockStyle.None;  // Disable automatic docking
-        gifCreatorButtons.Width = 422;
         gifCreatorButtons.Padding = new Padding(0);
         gifCreatorButtons.Margin = new Padding(0);
-        if (gifArea.Width < gifCreatorButtons.Width)
-        {
-            Console.WriteLine("WEEEE");
-            progressBar.Width = gifCreatorButtons.Width;
-        }
-
-        caculateCreatorButtonsSize();
-        //Position of gifCreatorButtons
-        if (gifCreatorButtons.Width < gifArea.Width) {
-            //Center according to progressBar
-            gifCreatorButtons.Location = new Point((progressBar.Width - gifCreatorButtons.Width) / 2, progressBar.Bottom + borderSize / 2);
-        }
-        else
-        {
-            gifCreatorButtons.Location = new Point(progressBar.Left, progressBar.Bottom + borderSize / 2);
-        }
-
-        gifCreatorButtons.Height = gifCreatorButtonsHeight;
-
         this.Controls.Add(gifCreatorButtons);
 
         //Attach Event Handlers
@@ -200,11 +201,28 @@ public class GifCreatorForm : Form
         settingsItem.Click += settingsItem_Click;
         exitItem.Click += exitItem_Click;
         this.KeyDown += new KeyEventHandler(Form_KeyDown);
+        this.LocationChanged += MyForm_LocationChanged;
 
-        //THE SIZE OF THE Winform
+        //Size and positioning of form, gif area, progress bar, and creator bar
+
+        //If the gif screenshot area width is larger than the creator buttons then the buttons should be centered to the progress bar
+        if (gifArea.Width > gifCreatorButtons.Width)
+        {
+            //Center according to progressBar
+            gifCreatorButtons.Location = new Point((progressBar.Width - gifCreatorButtons.Width) / 2, progressBar.Bottom + borderSize / 2);
+        }
+        //Set the progress bar width to the gif creator buttons width
+        else if(gifArea.Width < gifCreatorButtons.Width)
+        {
+            progressBar.Width = gifCreatorButtons.Width;
+            gifCreatorButtons.Location = new Point(progressBar.Left, progressBar.Bottom + borderSize / 2);
+        }
+
+        int totalWidth = Math.Max(gifCreatorButtons.Width, gifArea.Width);
+        int totalHeight = gifArea.Height + progressBar.Height + gifCreatorButtons.Height;
         this.Size = new Size(
-            gifArea.Width + borderSize + gifCreatorButtons.Width, //Width
-            gifArea.Height + progressBar.Height + gifCreatorButtons.Height //Height
+            totalWidth + (2 * borderSize) + 10,  // Include left and right borders
+            totalHeight + titleBarHeight + (2 * borderSize) + 10 // Include top and bottom borders plus title bar
         );
     }
 
@@ -225,7 +243,7 @@ public class GifCreatorForm : Form
         }
     }
 
-    private void caculateCreatorButtonsSize()
+    private (int,int) caculateCreatorButtonsSize()
     {
         int totalWidth = 0;
         int totalHeight = 0;
@@ -240,9 +258,7 @@ public class GifCreatorForm : Form
             totalHeight = Math.Max(totalHeight, itemSize.Height); // Get the max height
         }
 
-        // Display or use the total width and height
-        Console.WriteLine($"Total Width: {totalWidth}");
-        Console.WriteLine($"Max Height: {totalHeight}");
+        return (totalWidth, totalHeight);
     }
 
     private void pauseItem_Click(object? sender, EventArgs e)
@@ -340,7 +356,6 @@ public class GifCreatorForm : Form
     //Creates resized screenshots for GIF creation
     private void CreateGIFScreenshots(int FPS, int seconds, string tempDir, System.Drawing.Rectangle selectedArea, int resizeWidth, int resizeHeight, BackgroundWorker worker, DoWorkEventArgs e)
     {
-        Console.WriteLine("n word we made it skrrrrt");
         int totalIterations = seconds * FPS;
         int delay = 1000 / FPS;
 
@@ -419,6 +434,12 @@ public class GifCreatorForm : Form
                 }
             }
         }
+    }
+
+    //Update selectedArea location when the form moves
+    private void MyForm_LocationChanged(object sender, EventArgs e)
+    {
+        selectedArea.Location = new Point(this.Location.X + borderSize + 8, this.Location.Y + borderSize + titleBarHeight + 8);
     }
 
     private void Form_KeyDown(object? sender, KeyEventArgs e)
