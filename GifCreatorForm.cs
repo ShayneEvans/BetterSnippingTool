@@ -59,22 +59,7 @@ public class GifCreatorForm : Form
             selectedArea.X + selectedScreen.Bounds.X - borderSize - 8,
             selectedArea.Y + selectedScreen.Bounds.Y - borderSize - titleBarHeight - 8
         );
-        //this.Location = new System.Drawing.Point(selectedArea.X + selectedScreen.Bounds.X - borderSize, selectedArea.Y + selectedScreen.Bounds.Y - borderSize);
-        // Debugging output
-        Console.WriteLine($"Selected Area: {selectedArea}");
-        Console.WriteLine($"Selected Screen Bounds: {selectedScreen.Bounds}");
-        Console.WriteLine($"Border Size: {borderSize}");
-        Console.WriteLine($"Title Bar Height: {titleBarHeight}");
 
-        // Calculate the location
-        int calculatedX = selectedArea.X + selectedScreen.Bounds.X - borderSize;
-        int calculatedY = selectedArea.Y + selectedScreen.Bounds.Y - borderSize - titleBarHeight;
-
-        // Log the calculated position
-        Console.WriteLine($"Calculated Location: X = {calculatedX}, Y = {calculatedY}");
-
-
-        Console.WriteLine($"Form Location: {this.Location}");
         this.Paint += new PaintEventHandler(DrawCustomBorder);
     }
 
@@ -296,6 +281,8 @@ public class GifCreatorForm : Form
     private void settingsItem_Click(object? sender, EventArgs e)
     {
         Console.WriteLine("settingsItem");
+        GifSettingsForm gifSettingsForm = new GifSettingsForm();
+        gifSettingsForm.Show();
     }
 
     private void exitItem_Click(object? sender, EventArgs e)

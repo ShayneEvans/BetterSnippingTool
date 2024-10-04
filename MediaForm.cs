@@ -402,7 +402,9 @@ public class MediaForm : Form
 
                 //Update and save the configuration
                 AppConfig.Instance.DefaultDirectory = directoryPath;
-                AppConfig.Instance.SaveConfig();
+                Console.WriteLine("yo we are here right now tf...");
+                Console.WriteLine(AppConfig.Instance.GetCurrentFileName());
+                AppConfig.Instance.SaveConfig(AppConfig.Instance.GetCurrentFileName());
             }
         }
     }
