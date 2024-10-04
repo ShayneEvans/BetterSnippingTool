@@ -8,13 +8,14 @@ using System.Windows.Forms;
 public class GifSettingsForm : Form
 {
     private System.Windows.Forms.CheckBox optimizeGifCreationCheckBox;
+    private System.Windows.Forms.Label orLabel;
+    private System.Windows.Forms.CheckBox gifOutputCustomResolutionCheckBox;
     private System.Windows.Forms.ComboBox gifOutputResolutionsComboBox;
     private Dictionary<string, (int width, int height)> outputResolutions;
     //private System.Windows.Forms.TextBox gifOutputResolutionWidth;
     //private System.Windows.Forms.TextBox gifOutputResolutionHeight;
     private int gifOutputResolutionWidth;
     private int gifOutputResolutionHeight;
-    private System.Windows.Forms.CheckBox gifOutputCustomResolutionCheckBox;
     private System.Windows.Forms.Label gifFpsLabel;
     private System.Windows.Forms.NumericUpDown gifFPS;
     private System.Windows.Forms.Label gifSecondsLabel;
@@ -23,6 +24,7 @@ public class GifSettingsForm : Form
     private System.Windows.Forms.Button gifSaveProfileButton;
     private System.Windows.Forms.Button gifLoadProfileButton;
     private System.Windows.Forms.Button gifSaveCurrentSettingsButton;
+    private bool isLoadingAppConfig;
 
     public GifSettingsForm()
     {
@@ -52,6 +54,14 @@ public class GifSettingsForm : Form
             Checked = true
         };
 
+        orLabel = new System.Windows.Forms.Label()
+        {
+            AutoSize = true,
+            Text = "OR",
+            Font = new Font("Arial", 9, FontStyle.Bold),
+        };
+        orLabel.Location = new System.Drawing.Point((this.ClientSize.Width - orLabel.Width) / 2, 48);
+
         gifOutputCustomResolutionCheckBox = new System.Windows.Forms.CheckBox
         {
             AutoSize = true,
@@ -60,7 +70,8 @@ public class GifSettingsForm : Form
             Size = new System.Drawing.Size(74, 17),
             TabIndex = 0,
             Text = "Enable Custom Resolution",
-            UseVisualStyleBackColor = true
+            UseVisualStyleBackColor = true,
+            Enabled = false
         };
 
         gifOutputResolutionsComboBox = new System.Windows.Forms.ComboBox()
@@ -198,9 +209,8 @@ public class GifSettingsForm : Form
         };
 
         this.Controls.Add(optimizeGifCreationCheckBox);
+        this.Controls.Add(orLabel);
         this.Controls.Add(gifOutputResolutionsComboBox);
-        //this.Controls.Add(gifOutputResolutionWidth);
-        //this.Controls.Add(gifOutputResolutionHeight);
         this.Controls.Add(gifOutputCustomResolutionCheckBox);
         this.Controls.Add(gifFpsLabel);
         this.Controls.Add(gifFPS);
@@ -211,6 +221,7 @@ public class GifSettingsForm : Form
         this.Controls.Add(gifSaveProfileButton);
         this.Controls.Add(gifLoadProfileButton);
 
+        optimizeGifCreationCheckBox.CheckedChanged += optimizeGifCreationCheckBox_CheckedChanged;
         gifOutputResolutionsComboBox.SelectedIndexChanged += GifOutputResolutionsComboBox_SelectedIndexChanged;
         gifOutputCustomResolutionCheckBox.CheckedChanged += GifOutputCustomResolutionCheckBox_CheckedChanged;
         gifSaveCurrentSettingsButton.Click += GifSaveCurrentSettingsButton_Clicked;
@@ -220,58 +231,72 @@ public class GifSettingsForm : Form
         loadAppConfigVariables();
     }
 
+    //Setting the current control values to AppConfig
     private void setAppConfigVariables()
     {
-        AppConfig.Instance.OptimizeGifCreation = optimizeGifCreationCheckBox.Checked;
-        AppConfig.Instance.gifOutputResolution = (gifOutputResolutionWidth, gifOutputResolutionHeight);
+        AppConfig.Instance.OptimizeGifCreation = optimizeGifCreationCheckBox.Checked; 
+        if(optimizeGifCreationCheckBox.Checked == true)
+        {
+            AppConfig.Instance.gifOutputResolution = (0, 0);
+        }
+        else
+        {
+            AppConfig.Instance.gifOutputResolution = (gifOutputResolutionWidth, gifOutputResolutionHeight);
+        }
         AppConfig.Instance.FPS = (int)gifFPS.Value;
         AppConfig.Instance.Seconds = (int)gifSeconds.Value;
     }
 
+    //Loading AppConfig variables to controls
     private void loadAppConfigVariables()
     {
+        //Boolean used to prevent event handlers from executing
+        isLoadingAppConfig = true;
+
+        //Load configuration values
         optimizeGifCreationCheckBox.Checked = AppConfig.Instance.OptimizeGifCreation;
-        gifOutputResolutionsComboBox.SelectedItem = $"{AppConfig.Instance.gifOutputResolution.Item1}x{AppConfig.Instance.gifOutputResolution.Item2}"; 
+        gifOutputCustomResolutionCheckBox.Checked = !optimizeGifCreationCheckBox.Checked;
+        gifOutputResolutionsComboBox.SelectedItem = $"{AppConfig.Instance.gifOutputResolution.Item1}x{AppConfig.Instance.gifOutputResolution.Item2}";
         gifFPS.Value = AppConfig.Instance.FPS;
         gifSeconds.Value = AppConfig.Instance.Seconds;
+
+        //Explicitly set the enabled states
+        gifOutputCustomResolutionCheckBox.Enabled = !optimizeGifCreationCheckBox.Checked;
+        gifOutputResolutionsComboBox.Enabled = gifOutputCustomResolutionCheckBox.Checked;
+        optimizeGifCreationCheckBox.Enabled = !gifOutputCustomResolutionCheckBox.Checked;
+
+        //Reset the loading flag to false
+        isLoadingAppConfig = false;
     }
 
     private void GifOutputResolutionsComboBox_SelectedIndexChanged(object? sender, EventArgs e)
     {
-        // Get the selected item
         string selectedResolution = gifOutputResolutionsComboBox.SelectedItem.ToString();
-
-        // Retrieve the corresponding width and height from the dictionary
         (int width, int height) = outputResolutions[selectedResolution];
-        // Set the values in the text boxes
         gifOutputResolutionWidth = width;
         gifOutputResolutionHeight = height;
+    }
+
+    private void optimizeGifCreationCheckBox_CheckedChanged(object? sender, EventArgs e)
+    {
+        if (isLoadingAppConfig) return;
+        gifOutputCustomResolutionCheckBox.Enabled = !optimizeGifCreationCheckBox.Checked;
     }
 
     //Toggles using custom resolution or the combobox
     private void GifOutputCustomResolutionCheckBox_CheckedChanged(object? sender, EventArgs e)
     {
-        bool isChecked = gifOutputCustomResolutionCheckBox.Checked;
+        if (isLoadingAppConfig) return;
 
-        if (isChecked)
-        {
-            gifOutputResolutionsComboBox.Enabled = true;
-            //gifOutputResolutionWidth.Enabled = true;
-            //gifOutputResolutionHeight.Enabled = true;
-        }
-        else
-        {
-            gifOutputResolutionsComboBox.Enabled = false;
-            //gifOutputResolutionWidth.Enabled = false;
-            //gifOutputResolutionHeight.Enabled = false;
-        }
+        optimizeGifCreationCheckBox.Enabled = !gifOutputCustomResolutionCheckBox.Checked;
+        optimizeGifCreationCheckBox.Checked = false; // Clear the optimize checkbox
+        gifOutputResolutionsComboBox.Enabled = gifOutputCustomResolutionCheckBox.Checked;
     }
 
     private void GifSaveCurrentSettingsButton_Clicked(object? sender, EventArgs e)
     {
         setAppConfigVariables();
         AppConfig.Instance.SaveConfig(AppConfig.Instance.GetCurrentFileName());
-        gifSaveCurrentSettingsButton.Text = $"Saved to {AppConfig.Instance.GetCurrentFileName()}";
     }
 
     private void GifSaveProfileButton_Click(object? sender, EventArgs e)
@@ -288,9 +313,11 @@ public class GifSettingsForm : Form
             saveFileDialog.AddExtension = true;
             if (saveFileDialog.ShowDialog() == DialogResult.OK)
             {
-                //AppConfig.Instance.gifOutputResolution = ()
                 setAppConfigVariables();
                 AppConfig.Instance.SaveConfig($"{saveFileDialog.FileName}");
+                string selectedFileName = Path.GetFileNameWithoutExtension($"{saveFileDialog.FileName}.xml");
+                AppConfig.Instance.SwitchToConfig(selectedFileName);
+                gifProfileLoaded.Text = $"Profile Loaded: {AppConfig.Instance.GetCurrentFileName()}";
             }
         }
     }

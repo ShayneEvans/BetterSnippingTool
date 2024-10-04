@@ -64,8 +64,6 @@ public class AppConfig
         }
         else
         {
-            Console.WriteLine("WE HERE YO");
-            Console.WriteLine(configName);
             instance = new AppConfig();
             instance.SaveConfig(configName);
         }
@@ -75,7 +73,6 @@ public class AppConfig
     public void SaveConfig(string fileName)
     {
         string filePath = GetFilePath(fileName);
-        Console.WriteLine(filePath);
 
         XmlSerializer serializer = new XmlSerializer(typeof(AppConfig));
         using (StreamWriter writer = new StreamWriter(filePath))
@@ -83,12 +80,12 @@ public class AppConfig
             serializer.Serialize(writer, this);
         }
 
-        currentFileName = filePath;
+        currentFileName = fileName;
     }
 
     public void SwitchToConfig(string newFileName)
     {
-        LoadConfig(newFileName); // Load new configuration from the specified file
+        LoadConfig(newFileName);
     }
 
     public string GetCurrentFileName()
