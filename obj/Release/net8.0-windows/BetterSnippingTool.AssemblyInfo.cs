@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BetterSnippingTool")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f4db4bc9cee472ee03ac2c2e29797d512995df39")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9e04aa9651cd71394662bc41a6791758ad94d1d7")]
 [assembly: System.Reflection.AssemblyProductAttribute("BetterSnippingTool")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BetterSnippingTool")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

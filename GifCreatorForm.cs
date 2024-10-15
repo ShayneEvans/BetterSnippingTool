@@ -35,6 +35,9 @@ public class GifCreatorForm : Form
     private bool _isPaused = false;
     private bool _isStopped = false;
     private int currentScreenIndex;
+    private int framerate;
+    private int gifSeconds;
+    private (int, int) gifDimensions;
     public GifCreatorForm(string tempDir, string outputDir, System.Drawing.Rectangle selectedArea, int currentScreenIndex)
     {
         this.titleBarHeight = SystemInformation.CaptionHeight;
@@ -63,30 +66,14 @@ public class GifCreatorForm : Form
         this.Paint += new PaintEventHandler(DrawCustomBorder);
     }
 
-    private void backgroundWorker_DoWork(object sender, DoWorkEventArgs e)
-    {
-        BackgroundWorker worker = sender as BackgroundWorker;
-        (int, int) resizeResolution = obtainResizeResolution(selectedArea.Width, selectedArea.Height);
-        int framerate = 24;
-        int seconds = 5;
-        Console.WriteLine("Processing screenshots into GIF");
-        CreateGIFScreenshots(framerate, seconds, tempDir, selectedArea, resizeResolution.Item1, resizeResolution.Item2, worker, e);
-        FFmpeg.run_command("E:\\Visual Studio\\SnippingToolClone\\ffmpeg\\ffmpeg.exe",
-        $"-framerate {framerate} -i \"{Path.Combine(tempDir, "screenshot_%04d.png")}\" -vf \"palettegen=max_colors=256:reserve_transparent=0\" -y \"{Path.Combine(outputDir, "palette.png")}\"");
-        FFmpeg.run_command("E:\\Visual Studio\\SnippingToolClone\\ffmpeg\\ffmpeg.exe",
-        $"-framerate {framerate} -i \"{Path.Combine(tempDir, "screenshot_%04d.png")}\" -i \"{Path.Combine(outputDir, "palette.png")}\" -filter_complex \"fps={framerate},format=rgba,paletteuse=dither=sierra2_4a\" -y \"{Path.Combine(outputDir, $"output_{framerate}.gif")}\"");
-
-        this.Invoke((Action)(() =>
-        {
-            MediaForm gifForm = new MediaForm(Path.Combine(outputDir, $"output_{framerate}.gif"), currentScreenIndex);
-            this.Hide();
-            gifForm.Closed += (s, args) => this.Close();
-            gifForm.Show();
-        }));
-    }
-
     private void InitializeComponent()
     {
+        //Loading in configuration variables
+        this.framerate = AppConfig.Instance.FPS;
+        this.gifSeconds = AppConfig.Instance.Seconds;
+        this.gifDimensions = AppConfig.Instance.gifOutputResolution;
+        Console.WriteLine(this.gifDimensions);
+
         Console.WriteLine("GIF Creator Opened");
         this.Icon = new Icon("Resources\\BS_Logo.ico");
         this.Text = "GIF Creator";
@@ -209,6 +196,39 @@ public class GifCreatorForm : Form
             totalWidth + (2 * borderSize) + 10,  // Include left and right borders
             totalHeight + titleBarHeight + (2 * borderSize) + 10 // Include top and bottom borders plus title bar
         );
+    }
+
+    private void backgroundWorker_DoWork(object sender, DoWorkEventArgs e)
+    {
+        BackgroundWorker worker = sender as BackgroundWorker;
+        (int, int) resizeResolution = (selectedArea.Width, selectedArea.Height);
+        int framerate = AppConfig.Instance.FPS;
+        int seconds = AppConfig.Instance.Seconds;
+        if (AppConfig.Instance.OptimizeGifCreation == true)
+        {
+            resizeResolution = obtainResizeResolution(selectedArea.Width, selectedArea.Height);
+        }
+        else
+        {
+            resizeResolution = AppConfig.Instance.gifOutputResolution;
+        }
+
+
+        Console.WriteLine("Processing screenshots into GIF");
+        Console.WriteLine($"SETTINGS:\nFPS:{framerate}\nSeconds:{gifSeconds}\nOutput Resolution:{resizeResolution}");
+        CreateGIFScreenshots(framerate, seconds, tempDir, selectedArea, resizeResolution.Item1, resizeResolution.Item2, worker, e);
+        FFmpeg.run_command("E:\\Visual Studio\\SnippingToolClone\\ffmpeg\\ffmpeg.exe",
+        $"-framerate {framerate} -i \"{Path.Combine(tempDir, "screenshot_%04d.png")}\" -vf \"palettegen=max_colors=256:reserve_transparent=0\" -y \"{Path.Combine(outputDir, "palette.png")}\"");
+        FFmpeg.run_command("E:\\Visual Studio\\SnippingToolClone\\ffmpeg\\ffmpeg.exe",
+        $"-framerate {framerate} -i \"{Path.Combine(tempDir, "screenshot_%04d.png")}\" -i \"{Path.Combine(outputDir, "palette.png")}\" -filter_complex \"fps={framerate},format=rgba,paletteuse=dither=sierra2_4a\" -y \"{Path.Combine(outputDir, $"output_{framerate}.gif")}\"");
+
+        this.Invoke((Action)(() =>
+        {
+            MediaForm gifForm = new MediaForm(Path.Combine(outputDir, $"output_{framerate}.gif"), currentScreenIndex);
+            this.Hide();
+            gifForm.Closed += (s, args) => this.Close();
+            gifForm.Show();
+        }));
     }
 
     //Used to start work and resume
@@ -337,7 +357,12 @@ public class GifCreatorForm : Form
             }
         }
 
-        return aspectRatios[ratioIndex].Resolutions[0];
+        //If incoming resolution is larger than downscaled, return downscaled
+        if((width * height) >= (aspectRatios[ratioIndex].Resolutions[0].Width * aspectRatios[ratioIndex].Resolutions[0].Height)) {
+            return aspectRatios[ratioIndex].Resolutions[0];
+        }
+
+        return (width, height);
     }
 
     //Creates resized screenshots for GIF creation
@@ -401,7 +426,6 @@ public class GifCreatorForm : Form
 
                 using (Graphics gResized = Graphics.FromImage(resizedScreenshot))
                 {
-                    //gResized.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
                     gResized.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
                     gResized.DrawImage(screenshot, 0, 0, resizeWidth, resizeHeight);
                 }

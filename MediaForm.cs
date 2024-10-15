@@ -15,7 +15,7 @@ public class MediaForm : Form
     private bool _disposed = false;
     private PictureBox pictureBox;
     private Panel panel;
-    private int padding = 200;
+    private int padding = 100;
     private MenuStrip menuStrip;
     private ToolStripMenuItem fileMenuItem;
     private ToolStripMenuItem editMenuItem;
@@ -29,6 +29,7 @@ public class MediaForm : Form
     private Point lastPoint;
     private Pen drawPen;
     private Cursor paintCursor = Cursors.Default;
+    private bool inImagesBounds = false;
     private Color penColor;
     private int penSize;
     private Bitmap drawingBitmap;
@@ -62,7 +63,6 @@ public class MediaForm : Form
         IsGifMode = false;
         InitializeComponent();
 
-
         //Initializing drawing pen
         penColor = ColorTranslator.FromHtml("#0cff00");
         penSize = 10;
@@ -86,15 +86,13 @@ public class MediaForm : Form
         clonedBitmap = new Bitmap(drawingBitmap);
         undoStack.Push(clonedBitmap);
 
-        //pictureBox.Image = Image.FromFile("Resources\\SamplePNGImage_30mbmb.png");
         pictureBox.Image = clonedBitmap;
-
         CenterFormOnMonitor(monitorIndex);
     }
 
     private void InitializeComponent()
     {
-        Console.WriteLine("INIT");
+        this.Text = "Better Snipping Tool";
         //Set the icon for the form
         this.Icon = new Icon("Resources\\BS_Logo.ico");
 
@@ -117,13 +115,12 @@ public class MediaForm : Form
         this.Controls.Add(menuStrip);
         this.pictureBox = new System.Windows.Forms.PictureBox();
         this.TransparencyKey = default;
-        this.pictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
-        this.pictureBox.Location = new System.Drawing.Point(0, 0);
+        //this.pictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
+        //this.pictureBox.Location = new System.Drawing.Point(0, 0);
         this.Controls.Add(this.pictureBox);
 
         //Tool Strip Menu Items (Buttons)
         Image newSnipButton = Image.FromFile("Resources\\Button_Images\\New_Snip_Button.png");
-        Image modeButton = Image.FromFile("Resources\\Button_Images\\Mode_Button.png");
         Image saveButton = Image.FromFile("Resources\\Button_Images\\Save_Button.png");
 
         newSnipItem = new ToolStripMenuItem(newSnipButton)
@@ -134,14 +131,6 @@ public class MediaForm : Form
             ToolTipText = "Create New Snip"
         };
 
-        modeItem = new ToolStripMenuItem(modeButton)
-        {
-            ImageAlign = ContentAlignment.TopCenter,
-            ImageScaling = ToolStripItemImageScaling.None,
-            BackColor = Color.LightBlue,
-            ToolTipText = "Change Mode"
-        };
-
         saveItem = new ToolStripMenuItem(saveButton)
         {
             ImageAlign = ContentAlignment.MiddleLeft,
@@ -149,8 +138,6 @@ public class MediaForm : Form
             BackColor = Color.LightBlue,
             ToolTipText = "Save Screenshot"
         };
-
-
 
         //Non GIF Mode gets extra buttons for drawing
         if(!IsGifMode)
@@ -167,7 +154,7 @@ public class MediaForm : Form
             };
 
             submenuStrip = new MenuStrip();
-            submenuStrip.Items.AddRange(new ToolStripItem[] { newSnipItem, modeItem, saveItem, drawItem });
+            submenuStrip.Items.AddRange(new ToolStripItem[] { newSnipItem, saveItem, drawItem });
             drawItem.ButtonClick += Paint_Click;
             drawItem.DropDownItems.Add("Choose Color", null, Choose_Color);
             drawItem.DropDownItems.Add("Choose Pen Size", null, Choose_Pen_Size);
@@ -184,39 +171,53 @@ public class MediaForm : Form
         else
         {
             submenuStrip = new MenuStrip();
-            submenuStrip.Items.AddRange(new ToolStripItem[] { newSnipItem, modeItem, saveItem });
+            submenuStrip.Items.AddRange(new ToolStripItem[] { newSnipItem, saveItem });
         }
  
         submenuStrip.BackColor = Color.Gray;
         submenuStrip.Dock = DockStyle.None; // Disable default docking
         submenuStrip.Location = new Point(0, menuStrip.Height); // Set custom location
-
         this.Controls.Add(submenuStrip);
 
         //Attach Event Handlers
         newSnipItem.Click += New_Snip_Click;
-        modeItem.Click += New_Snip_Click;
         saveItem.Click += Save_As_Click;
-
-
         this.FormClosing += new FormClosingEventHandler(MainForm_FormClosing);
         this.KeyDown += new KeyEventHandler(Form_KeyDown);
-        this.Text = "Better Snipping Tool";
 
         panel = new Panel
         {
             Dock = DockStyle.Fill,
-            Padding = new Padding(padding),
-            AutoScroll = true
+            AutoScroll = true,
         };
 
         //Add the PictureBox to the Panel
         panel.Controls.Add(pictureBox);
         pictureBox.Location = new Point((panel.ClientSize.Width - pictureBox.Width) / 2, (panel.ClientSize.Height - pictureBox.Height) / 2);
-        panel.Resize += (sender, e) => pictureBox.Location = new Point((panel.ClientSize.Width - pictureBox.Width) / 2, (panel.ClientSize.Height - pictureBox.Height) / 2);
+        pictureBox.Padding = new Padding(padding);
+        this.pictureBox.SizeMode = PictureBoxSizeMode.AutoSize;
+        // Initial position of the PictureBox, accounting for panel padding
+        UpdatePictureBoxLocation();
+
+        // Event handler for resizing the panel
+        panel.Resize += (sender, e) => UpdatePictureBoxLocation();
 
         //Adding Controls
         this.Controls.Add(panel);
+    }
+
+    private void UpdatePictureBoxLocation()
+    {
+        //Calculate total padding
+        int paddingX = panel.Padding.Left + panel.Padding.Right;
+        int paddingY = panel.Padding.Top + panel.Padding.Bottom;
+
+        // Calculate new location, making sure it doesn't go negative (out of bounds)
+        int newX = Math.Max(panel.Padding.Left, (panel.ClientSize.Width - paddingX - pictureBox.Width) / 2);
+        int newY = Math.Max(panel.Padding.Top, (panel.ClientSize.Height - paddingY - pictureBox.Height) / 2);
+
+        // Apply the new location to the PictureBox
+        pictureBox.Location = new Point(newX, newY);
     }
 
     private void New_Snip_Click(object? sender, EventArgs e)
@@ -357,17 +358,36 @@ public class MediaForm : Form
         }
     }
 
+
+    private bool isInsideImage(Point clickLocation)
+    {
+        if (clickLocation.X >= padding && clickLocation.X <= pictureBox.Image.Size.Width + padding && clickLocation.Y >= padding && clickLocation.Y <= pictureBox.Image.Size.Height + padding)
+        {
+            return true;
+        }
+
+        return false;
+    }
     private void paint_MouseDown(object? sender, MouseEventArgs e)
     {
-        if (e.Button == MouseButtons.Left && isDrawing)
+        if(isInsideImage(e.Location))
         {
-            lastPoint = e.Location;
+            this.inImagesBounds = true;
+            if (e.Button == MouseButtons.Left && isDrawing)
+            {
+                lastPoint = new Point(e.Location.X - padding, e.Location.Y - padding);
+            }
         }
+        else
+        {
+            this.inImagesBounds = false;
+        }
+
     }
 
     private void paint_MouseUp(object? sender, MouseEventArgs e)
     {
-        if (e.Button == MouseButtons.Left && isDrawing)
+        if (e.Button == MouseButtons.Left && isDrawing && inImagesBounds)
         {
             PInvoke_Clipboard.SetBitmapToClipboard(drawingBitmap);
             Bitmap clonedBitmap = new Bitmap(drawingBitmap);
@@ -377,14 +397,14 @@ public class MediaForm : Form
 
     private void paint_MouseMove(object? sender, MouseEventArgs e)
     {
-        if (isDrawing && e.Button == MouseButtons.Left && drawPen != null)
+        if (isDrawing && e.Button == MouseButtons.Left && drawPen != null && inImagesBounds)
         {
             using (Graphics g = Graphics.FromImage(drawingBitmap))
             {
                 g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-                g.DrawLine(drawPen, lastPoint, e.Location);
+                g.DrawLine(drawPen, lastPoint, new Point(e.Location.X - padding, e.Location.Y - padding));
             }
-            lastPoint = e.Location;
+            lastPoint = new Point(e.Location.X - padding, e.Location.Y - padding);
             pictureBox.Image = drawingBitmap;
             pictureBox.Invalidate();
         }
@@ -402,7 +422,6 @@ public class MediaForm : Form
 
                 //Update and save the configuration
                 AppConfig.Instance.DefaultDirectory = directoryPath;
-                Console.WriteLine("yo we are here right now tf...");
                 Console.WriteLine(AppConfig.Instance.GetCurrentFileName());
                 AppConfig.Instance.SaveConfig(AppConfig.Instance.GetCurrentFileName());
             }
@@ -558,7 +577,6 @@ public class MediaForm : Form
             this.FormClosing -= MainForm_FormClosing;
             this.KeyDown -= Form_KeyDown;
             newSnipItem.Click -= New_Snip_Click;
-            modeItem.Click -= New_Snip_Click;
             saveItem.Click -= Save_As_Click;
 
 

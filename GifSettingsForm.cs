@@ -12,8 +12,6 @@ public class GifSettingsForm : Form
     private System.Windows.Forms.CheckBox gifOutputCustomResolutionCheckBox;
     private System.Windows.Forms.ComboBox gifOutputResolutionsComboBox;
     private Dictionary<string, (int width, int height)> outputResolutions;
-    //private System.Windows.Forms.TextBox gifOutputResolutionWidth;
-    //private System.Windows.Forms.TextBox gifOutputResolutionHeight;
     private int gifOutputResolutionWidth;
     private int gifOutputResolutionHeight;
     private System.Windows.Forms.Label gifFpsLabel;
@@ -109,30 +107,6 @@ public class GifSettingsForm : Form
         };
 
         gifOutputResolutionsComboBox.Items.AddRange(outputResolutions.Keys.ToArray());
-
-        /*gifOutputResolutionWidth = new System.Windows.Forms.TextBox
-        {
-            Enabled = false,
-            AcceptsReturn = true,
-            MaxLength = 4,
-            Location = new Point(30, 120),
-            Size = new Size(120, 20),
-            Font = new Font("Arial", 10),
-            TextAlign = HorizontalAlignment.Center,
-        };
-
-        gifOutputResolutionHeight = new System.Windows.Forms.TextBox
-        {
-            Enabled = false,
-            AcceptsReturn = true,
-            MaxLength = 4,
-            Location = new Point(155, 120),
-            Size = new Size(120, 20),
-            Font = new Font("Arial", 10),
-            TextAlign = HorizontalAlignment.Center,
-        };*/
-
-
 
         gifFpsLabel = new Label
         {
