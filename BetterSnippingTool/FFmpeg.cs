@@ -1,19 +1,22 @@
 ﻿using System;
 using System.Diagnostics;
 
-public static class FFmpeg
+namespace BetterSnippingTool.Tools
 {
-    public static void run_command(string ffmpegPath, string command)
+    public static class FFmpeg
     {
-        using (Process p = new Process())
+        public static void run_command(string ffmpegPath, string command)
         {
-            p.StartInfo.UseShellExecute = false;
-            p.StartInfo.CreateNoWindow = true;
-            p.StartInfo.RedirectStandardOutput = true;
-            p.StartInfo.FileName = ffmpegPath;
-            p.StartInfo.Arguments = command;
-            p.Start();
-            p.WaitForExit();
+            using (Process p = new Process())
+            {
+                p.StartInfo.UseShellExecute = false;
+                p.StartInfo.CreateNoWindow = true;
+                p.StartInfo.RedirectStandardOutput = true;
+                p.StartInfo.FileName = ffmpegPath;
+                p.StartInfo.Arguments = command;
+                p.Start();
+                p.WaitForExit();
+            }
         }
     }
 }

@@ -5,38 +5,41 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-public static class CursorUtilities
+namespace BetterSnippingTool.Utilities
 {
-    public static Cursor LoadCustomCursor(string filePath)
+    public static class CursorUtilities
     {
-        Bitmap bitmap = new Bitmap(filePath);
-        IntPtr ptr = bitmap.GetHicon();
-        return new Cursor(ptr);
-    }
-
-    public static Cursor CreatePaintCursor(Color penColor, int penSize)
-    {
-        int cursorWidth = penSize;
-        int cursorHeight = penSize;
-
-        using (Bitmap bitmap = new Bitmap(cursorWidth, cursorHeight))
+        public static Cursor LoadCustomCursor(string filePath)
         {
-            using (Graphics g = Graphics.FromImage(bitmap))
+            Bitmap bitmap = new Bitmap(filePath);
+            IntPtr ptr = bitmap.GetHicon();
+            return new Cursor(ptr);
+        }
+
+        public static Cursor CreatePaintCursor(Color penColor, int penSize)
+        {
+            int cursorWidth = penSize;
+            int cursorHeight = penSize;
+
+            using (Bitmap bitmap = new Bitmap(cursorWidth, cursorHeight))
             {
-                g.Clear(Color.Transparent);
-
-                int cursorRadius = penSize / 2;
-                int cursorX = cursorRadius;
-                int cursorY = cursorRadius;
-
-                using (SolidBrush dotBrush = new SolidBrush(penColor))
+                using (Graphics g = Graphics.FromImage(bitmap))
                 {
-                    g.FillEllipse(dotBrush, cursorX - cursorRadius, cursorY - cursorRadius, penSize, penSize);
+                    g.Clear(Color.Transparent);
+
+                    int cursorRadius = penSize / 2;
+                    int cursorX = cursorRadius;
+                    int cursorY = cursorRadius;
+
+                    using (SolidBrush dotBrush = new SolidBrush(penColor))
+                    {
+                        g.FillEllipse(dotBrush, cursorX - cursorRadius, cursorY - cursorRadius, penSize, penSize);
+                    }
                 }
+                // Convert the bitmap to a cursor
+                IntPtr hCursor = bitmap.GetHicon();
+                return new Cursor(hCursor);
             }
-            // Convert the bitmap to a cursor
-            IntPtr hCursor = bitmap.GetHicon();
-            return new Cursor(hCursor);
         }
     }
 }

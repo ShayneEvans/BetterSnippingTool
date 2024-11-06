@@ -45,8 +45,8 @@ E:\Visual Studio\SnippingToolClone\BetterSnippingTool\bin\Release\net8.0-windows
 E:\Visual Studio\SnippingToolClone\BetterSnippingTool\bin\Release\net8.0-windows\Microsoft.WindowsAPICodePack.Shell.dll
 E:\Visual Studio\SnippingToolClone\BetterSnippingTool\bin\Release\net8.0-windows\Microsoft.WindowsAPICodePack.ShellExtensions.dll
 E:\Visual Studio\SnippingToolClone\BetterSnippingTool\obj\Release\net8.0-windows\BetterSnippingTool.csproj.AssemblyReference.cache
-E:\Visual Studio\SnippingToolClone\BetterSnippingTool\obj\Release\net8.0-windows\BetterSnippingTool.resources
-E:\Visual Studio\SnippingToolClone\BetterSnippingTool\obj\Release\net8.0-windows\Program.resources
+E:\Visual Studio\SnippingToolClone\BetterSnippingTool\obj\Release\net8.0-windows\BetterSnippingTool.Forms.BetterSnippingToolForm.resources
+E:\Visual Studio\SnippingToolClone\BetterSnippingTool\obj\Release\net8.0-windows\BetterSnippingTool.Program.resources
 E:\Visual Studio\SnippingToolClone\BetterSnippingTool\obj\Release\net8.0-windows\BetterSnippingTool.csproj.GenerateResource.cache
 E:\Visual Studio\SnippingToolClone\BetterSnippingTool\obj\Release\net8.0-windows\BetterSnippingTool.GeneratedMSBuildEditorConfig.editorconfig
 E:\Visual Studio\SnippingToolClone\BetterSnippingTool\obj\Release\net8.0-windows\BetterSnippingTool.AssemblyInfoInputs.cache

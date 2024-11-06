@@ -1,15 +1,21 @@
-static class Program
+using BetterSnippingTool.Forms;
+using BetterSnippingTool.Config;
+
+namespace BetterSnippingTool
 {
-    public static AppConfig Config { get; private set; }
-
-    [STAThread]
-    static void Main()
+    static class Program
     {
-        // Initialize the application configuration
-        AppConfig config = AppConfig.Instance;
+        public static AppConfig Config { get; private set; }
 
-        Application.EnableVisualStyles();
-        Application.SetCompatibleTextRenderingDefault(false);
-        Application.Run(new BetterSnippingTool(false));
+        [STAThread]
+        static void Main()
+        {
+            // Initialize the application configuration
+            AppConfig config = AppConfig.Instance;
+
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Application.Run(new BetterSnippingToolForm(false));
+        }
     }
 }
