@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AppConfig xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <DefaultDirectory />
+  <OptimizationLevel>Optimize</OptimizationLevel>
+  <gifOutputResolution>
+    <Item1>0</Item1>
+    <Item2>0</Item2>
+  </gifOutputResolution>
+  <FPS>24</FPS>
+  <Seconds>20</Seconds>
+</AppConfig>

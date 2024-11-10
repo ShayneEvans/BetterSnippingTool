@@ -7,6 +7,7 @@ namespace BetterSnippingTool.Forms
     //BetterSnippingTool form
     public class BetterSnippingToolForm : Form
     {
+        private FileUtilities fileUtilities;
         //Current Screen Index used to switch between multiple displays with arrows keys, temp solution until find out how to highlight all windows (might be imp)
         private int currentScreenIndex;
         private bool isDragging = false;
@@ -17,6 +18,7 @@ namespace BetterSnippingTool.Forms
 
         public BetterSnippingToolForm(bool isGIFMode)
         {
+            fileUtilities = new FileUtilities();
             this.isGIFMode = isGIFMode;
             //Obtaining the primary screen index
             currentScreenIndex = getPrimaryScreenIndex();
@@ -92,8 +94,10 @@ namespace BetterSnippingTool.Forms
             Invalidate();
         }
 
+        //On mouse up either open gif creator form or take screenshot an open snip media form
         private void Form_MouseUp(object? sender, MouseEventArgs e)
         {
+            string currentDirectory = Directory.GetCurrentDirectory();
             if (e.Button == MouseButtons.Left)
             {
                 isDragging = false;
@@ -101,11 +105,8 @@ namespace BetterSnippingTool.Forms
                 {
                     if (isGIFMode)
                     {
-                        string outputDir = @"E:\Visual Studio\SnippingToolClone\BetterSnippingTool\bin\Release\net8.0-windows\GIF";
-                        string tempDir = Path.Combine(Path.GetTempPath(), "BetterSnippingTool_GIF_Screenshots");
                         this.Visible = false;
-                        Console.WriteLine(selectedArea);
-                        using (GifCreatorForm gifCreatorForm = new GifCreatorForm(tempDir, outputDir, selectedArea, currentScreenIndex))
+                        using (GifCreatorForm gifCreatorForm = new GifCreatorForm(fileUtilities.tempDir, fileUtilities.outputDir, selectedArea, currentScreenIndex))
                         {
                             gifCreatorForm.FormClosed += (s, args) => this.Close();
                             gifCreatorForm.ShowDialog();
@@ -121,6 +122,7 @@ namespace BetterSnippingTool.Forms
             }
         }
 
+        //Changes mode snip or gif text at top
         private void drawModeText(Graphics g)
         {
             Screen selectedScreen = Screen.AllScreens[currentScreenIndex];
@@ -173,6 +175,7 @@ namespace BetterSnippingTool.Forms
             }
         }
 
+        //Screenshots selected area and opens new screenshot media form
         private void TakeScreenshotOfSelectedArea()
         {
             using (Bitmap screenshot = new Bitmap(selectedArea.Width, selectedArea.Height, PixelFormat.Format24bppRgb))
@@ -194,14 +197,14 @@ namespace BetterSnippingTool.Forms
             }
         }
 
-        // Method to move the form to the next screen
+        //Method to move the form to the next screen
         private void MoveToNextScreen()
         {
             currentScreenIndex = (currentScreenIndex + 1) % Screen.AllScreens.Length;
             this.Bounds = Screen.AllScreens[currentScreenIndex].Bounds;
         }
 
-        // Method to move the form to the previous screen
+        //Method to move the form to the previous screen
         private void MoveToPreviousScreen()
         {
             currentScreenIndex = (currentScreenIndex - 1 + Screen.AllScreens.Length) % Screen.AllScreens.Length;

@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Drawing.Imaging;
 using BetterSnippingTool.Config;
 using BetterSnippingTool.Tools;
+using BetterSnippingTool.Utilities;
 
 namespace BetterSnippingTool.Forms
 {
@@ -42,13 +43,11 @@ namespace BetterSnippingTool.Forms
         {
             this.titleBarHeight = SystemInformation.CaptionHeight;
             this.selectedArea = selectedArea;
-            Console.WriteLine(selectedArea);
             this.outputDir = outputDir;
             this.tempDir = tempDir;
             this.currentScreenIndex = currentScreenIndex;
             //borderSize / 2 to avoid red lines in gif output
             this.gifArea = new Rectangle(borderSize / 2, borderSize / 2, selectedArea.Width + borderSize, selectedArea.Height + borderSize);
-            Console.WriteLine(gifArea);
             InitializeComponent();
 
             backgroundWorker = new BackgroundWorker
@@ -230,14 +229,10 @@ namespace BetterSnippingTool.Forms
             }
 
             CreateGIFScreenshots(framerate, seconds, tempDir, selectedArea, resizeResolution.Item1, resizeResolution.Item2, worker, e);
-            Console.WriteLine(outputDir);
             FFmpeg.run_command("E:\\Visual Studio\\SnippingToolClone\\BetterSnippingTool\\ffmpeg\\ffmpeg.exe",
-            $"-framerate {framerate} -i \"{Path.Combine(tempDir, "screenshot_%04d.png")}\" -vf \"palettegen=max_colors=256:reserve_transparent=0\" -y \"{Path.Combine(outputDir, "palette.png")}\"");
-            Console.WriteLine("ffmpeg palette done");
+            $"-framerate {framerate} -i \"{Path.Combine(tempDir, "frame_%d.png")}\" -vf \"palettegen=max_colors=256:reserve_transparent=0\" -y \"{Path.Combine(outputDir, "palette.png")}\"");
             FFmpeg.run_command("E:\\Visual Studio\\SnippingToolClone\\BetterSnippingTool\\ffmpeg\\ffmpeg.exe",
-            $"-framerate {framerate} -i \"{Path.Combine(tempDir, "screenshot_%04d.png")}\" -i \"{Path.Combine(outputDir, "palette.png")}\" -filter_complex \"fps={framerate},format=rgba,paletteuse=dither=sierra2_4a\" -y \"{Path.Combine(outputDir, $"output_{framerate}.gif")}\"");
-            Console.WriteLine("ffmpeg gif creation");
-            ClearTemp(tempDir);
+            $"-framerate {framerate} -i \"{Path.Combine(tempDir, "frame_%d.png")}\" -i \"{Path.Combine(outputDir, "palette.png")}\" -filter_complex \"fps={framerate},format=rgba,paletteuse=dither=sierra2_4a\" -y \"{Path.Combine(outputDir, $"output_{framerate}.gif")}\"");
 
             this.Invoke((Action)(() =>
             {
@@ -345,10 +340,7 @@ namespace BetterSnippingTool.Forms
         }
 
         //Deletes all contents from temp folder
-        private void ClearTemp(string tempDir)
-        {
-            Array.ForEach(Directory.GetFiles(tempDir), File.Delete);
-        }
+
 
         //Finds the aspect ratio of screenshot taken by user then finds a LOW, MEDIUM, or High resolution to auto scale to
         private (int, int) obtainResizeResolution(int width, int height)
@@ -451,7 +443,7 @@ namespace BetterSnippingTool.Forms
                         gResized.DrawImage(screenshot, 0, 0, resizeWidth, resizeHeight);
                     }
 
-                    string filePath = Path.Combine(tempDir, $"screenshot_{i:D4}.png");
+                    string filePath = Path.Combine(tempDir, $"frame_{i}.png");
                     resizedScreenshot.Save(filePath, ImageFormat.Png);
 
                     //Timing for next frame

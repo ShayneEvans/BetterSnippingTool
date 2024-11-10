@@ -3,12 +3,16 @@ using System.Collections.Specialized;
 using BetterSnippingTool.Config;
 using BetterSnippingTool.Interop;
 using BetterSnippingTool.Utilities;
+using System.Text.RegularExpressions;
+using BetterSnippingTool.Tools;
+using System.Diagnostics;
 
 
 namespace BetterSnippingTool.Forms
 {
     public class MediaForm : Form
     {
+        private FileUtilities fileUtilities;
         private bool _disposed = false;
         private PictureBox pictureBox;
         private Panel panel;
@@ -21,8 +25,10 @@ namespace BetterSnippingTool.Forms
         private ToolStripMenuItem newSnipItem;
         private ToolStripMenuItem newGifItem;
         private ToolStripMenuItem saveItem;
+        private ToolStripSplitButton trimGifItem;
         private ToolStripSplitButton drawItem;
         private bool isDrawing = false;
+        private bool isTrimming = false;
         private Point lastPoint;
         private Pen drawPen;
         private Cursor paintCursor = Cursors.Default;
@@ -33,25 +39,33 @@ namespace BetterSnippingTool.Forms
         private Bitmap clonedBitmap;
         private Image paintButtonOff;
         private Image paintButtonOn;
+        private Image trimButtonOff;
+        private Image trimButtonOn;
         private Stack<Image> undoStack;
         private Stack<Image> redoStack;
         private Image gifImage;
         private string gifFilePath;
+        private string trimStartDir;
+        private string trimEndDir;
+        private System.Windows.Forms.Label gifTrimStartLabel;
+        private System.Windows.Forms.Label gifTrimEndLabel;
         public bool IsGifMode { get; private set; }
         public string PictureBoxImageLocation => pictureBox.ImageLocation;
         public Color CurrentPenColor => penColor;
         public int CurrentPenSize => penSize;
         public int UndoStackCount => undoStack.Count;
         public Image PictureBoxImage => pictureBox.Image;
+        private StringCollection filePaths;
 
         //For Gifs
         public MediaForm(string gifFilePath, int monitorIndex)
         {
+            fileUtilities = new FileUtilities();
             IsGifMode = true;
             this.gifFilePath = gifFilePath;
 
             //Copying GIF to clipboard
-            StringCollection filePaths = new StringCollection();
+            filePaths = new StringCollection();
             filePaths.Add(gifFilePath);
             Clipboard.SetFileDropList(filePaths);
 
@@ -123,6 +137,7 @@ namespace BetterSnippingTool.Forms
             Image newSnipButton = Image.FromFile("Resources\\Button_Images\\New_Snip_Button.png");
             Image newGifButton = Image.FromFile("Resources\\Button_Images\\New_GIF_Button.png");
             Image saveButton = Image.FromFile("Resources\\Button_Images\\Save_Button.png");
+            Image trimButton = Image.FromFile("Resources\\Button_Images\\Trim_Button.png");
 
             newSnipItem = new ToolStripMenuItem(newSnipButton)
             {
@@ -179,7 +194,43 @@ namespace BetterSnippingTool.Forms
             else
             {
                 submenuStrip = new MenuStrip();
-                submenuStrip.Items.AddRange(new ToolStripItem[] { newGifItem, newSnipItem, saveItem });
+                trimButtonOff = Image.FromFile("Resources\\Button_Images\\Trim_Button_Off.png");
+                trimButtonOn = Image.FromFile("Resources\\Button_Images\\Trim_Button_On.png");
+                trimGifItem = new ToolStripSplitButton(trimButtonOff)
+                {
+                    ImageAlign = ContentAlignment.MiddleLeft,
+                    ImageScaling = ToolStripItemImageScaling.None,
+                    BackColor = Color.LightBlue,
+                    ToolTipText = "TrimGif"
+                };
+
+                gifTrimStartLabel = new Label
+                {
+                    Location = new Point(460, 30),
+                    AutoSize = true,
+                    Text = "GIF Starting Frame:",
+                    Font = new Font("Arial", 10, FontStyle.Bold),
+                    Visible = false
+                };
+
+                gifTrimEndLabel = new Label
+                {
+                    Location = new Point(460, 50),
+                    AutoSize = true,
+                    Text = "GIF Ending Frame:",
+                    Font = new Font("Arial", 10, FontStyle.Bold),
+                    Visible = false
+                };
+
+                submenuStrip.Items.AddRange(new ToolStripItem[] { newGifItem, newSnipItem, saveItem, trimGifItem });
+
+                trimGifItem.ButtonClick += Trim_GIF_Click;
+                trimGifItem.DropDownItems.Add("Choose Starting Frame", null, Select_Trim_Start_Frame);
+                trimGifItem.DropDownItems.Add("Choose Ending Frame", null, Select_Trim_End_Frame);
+                trimGifItem.DropDownItems.Add("Trim GIF", null, Trim_GIF);
+                trimGifItem.DropDown.Enabled = false;
+                this.Controls.Add(gifTrimStartLabel);
+                this.Controls.Add(gifTrimEndLabel);
             }
 
             submenuStrip.BackColor = Color.Gray;
@@ -277,6 +328,103 @@ namespace BetterSnippingTool.Forms
             }
         }
 
+        private void Select_Trim_Start_Frame(object? sender, EventArgs e)
+        {
+            using (OpenFileDialog openFileDialog = new OpenFileDialog())
+            {
+                openFileDialog.Title = "Select Starting Frame";
+                openFileDialog.InitialDirectory = fileUtilities.tempDir;
+                openFileDialog.Filter = "GIF Frames (frame_*)|frame_*";
+                openFileDialog.ShowReadOnly = true;
+                openFileDialog.RestoreDirectory = true;
+
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    //Verify that the selected file matches the pattern
+                    string fileName = Path.GetFileName(openFileDialog.FileName);
+                    if (Regex.IsMatch(fileName, @"^frame_(\d+)\.png$"))
+                    {
+                        this.trimStartDir = openFileDialog.FileName;
+                        gifTrimStartLabel.Text = $"GIF Starting Frame: {Path.GetFileName(trimStartDir)}";
+                    }
+                    else
+                    {
+                        //Invalid file format selected
+                        MessageBox.Show("Invalid file selected. Please select a file in the format frame_0, frame_1, etc.");
+                    }
+                }
+            }
+        }
+
+        private void Select_Trim_End_Frame(object? sender, EventArgs e)
+        {
+            using (OpenFileDialog openFileDialog = new OpenFileDialog())
+            {
+                openFileDialog.Title = "Select Ending Frame";
+                openFileDialog.InitialDirectory = fileUtilities.tempDir;
+                openFileDialog.Filter = "GIF Frames (frame_*)|frame_*";
+                openFileDialog.ShowReadOnly = true;
+                openFileDialog.RestoreDirectory = true;
+
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    //Verify that the selected file matches the pattern
+                    string fileName = Path.GetFileName(openFileDialog.FileName);
+                    Console.WriteLine(fileName);
+                    if (Regex.IsMatch(fileName, @"^frame_(\d+)\.png$"))
+                    {
+                        this.trimEndDir = openFileDialog.FileName;
+                        gifTrimEndLabel.Text = $"GIF Ending Frame: {Path.GetFileName(trimEndDir)}";
+                    }
+                    else
+                    {
+                        //Invalid file format selected
+                        MessageBox.Show("Invalid file selected. Please select a file in the format format frame_0, frame_1, etc.");
+                    }
+                }
+            }
+        }
+
+        private int getFrameNumber(string frameDir)
+        {
+            int frameNumber = int.Parse(Regex.Match(frameDir, @"\d+").Value);
+
+            return frameNumber;
+        }
+
+        private void Trim_GIF(object? sender, EventArgs e)
+        {
+            int start_frame = getFrameNumber(Path.GetFileName(trimStartDir));
+            int end_frame = getFrameNumber(Path.GetFileName(trimEndDir));
+            string trimmed_output_path = Path.Combine(fileUtilities.outputDir, $"output_{AppConfig.Instance.FPS}_trimmed.gif");
+            Console.WriteLine(start_frame);
+            Console.WriteLine(end_frame);
+            //User must select a starting and ending frame to trim
+            if (trimStartDir != null && trimEndDir != null)
+            {
+                //Create the GIF using the selected range and the generated palette
+                FFmpeg.run_command("E:\\Visual Studio\\SnippingToolClone\\BetterSnippingTool\\ffmpeg\\ffmpeg.exe",
+                    $"-framerate {AppConfig.Instance.FPS} -i \"{Path.Combine(fileUtilities.tempDir, "frame_%d.png")}\" " +
+                    $"-i \"{Path.Combine(fileUtilities.outputDir, "palette.png")}\" -filter_complex " +
+                    $"\"select='between(n\\,{start_frame}\\,{end_frame})',fps={AppConfig.Instance.FPS},format=rgba,paletteuse=dither=sierra2_4a\" " +
+                    $"-loop 0 -an -y \"{trimmed_output_path}\"");
+
+                gifFilePath = trimmed_output_path;
+                if (pictureBox.Image != null)
+                {
+                    pictureBox.Image.Dispose();
+                }
+                gifImage = Image.FromFile(gifFilePath);
+                pictureBox.Image = gifImage;
+                filePaths[0] = gifFilePath;
+                Clipboard.SetFileDropList(filePaths);
+            }
+            else
+            {
+                MessageBox.Show("Please select a start and ending frame to trim the GIF.");
+            }
+        }
+
         private void Paint_Click(object? sender, EventArgs e)
         {
             //Toggle isDrawing
@@ -299,6 +447,27 @@ namespace BetterSnippingTool.Forms
                 this.Cursor = Cursors.Default;
 
                 drawItem.Image = paintButtonOff;
+            }
+        }
+
+        private void Trim_GIF_Click(object? sender, EventArgs e)
+        {
+            isTrimming = !isTrimming;
+
+            if (isTrimming)
+            {
+                trimGifItem.Image = trimButtonOn;
+                gifTrimStartLabel.Visible = true;
+                gifTrimEndLabel.Visible = true;
+                trimGifItem.DropDown.Enabled = true;
+            }
+
+            else
+            {
+                trimGifItem.Image = trimButtonOff;
+                gifTrimStartLabel.Visible = false;
+                gifTrimEndLabel.Visible = false;
+                trimGifItem.DropDown.Enabled = false;
             }
         }
 
@@ -488,27 +657,21 @@ namespace BetterSnippingTool.Forms
         private void CenterFormOnMonitor(int monitorIndex)
         {
             //Adjust the form size to include padding
-            this.ClientSize = new Size(pictureBox.Image.Width + 2 * padding, pictureBox.Image.Height + 2 * padding);
+            //This is to account for trim text fitting in without resize on smaller gifs
+            if(pictureBox.Image.Width < 600) 
+            {
+                this.ClientSize = new Size((pictureBox.Image.Width + 550) + 2 * padding, pictureBox.Image.Height + 2 * padding);
+            }
+            else
+            {
+                this.ClientSize = new Size(pictureBox.Image.Width + 2 * padding, pictureBox.Image.Height + 2 * padding);
+            }
+
 
             //Center the form on the primary monitor
             Rectangle screenBounds = Screen.AllScreens[monitorIndex].Bounds;
             this.StartPosition = FormStartPosition.Manual;
             this.Location = new Point(screenBounds.X + (screenBounds.Width - this.Width) / 2, screenBounds.Y + (screenBounds.Height - this.Height) / 2);
-        }
-
-        private void ClearGifFolder(string gifFilePath)
-        {
-            //Dispose of gif inside of picturebox so it can be deleted from GIF folder
-            if (pictureBox.Image != null)
-            {
-                pictureBox.Image.Dispose();
-                pictureBox.Image = null; // Clear the reference
-            }
-            //Extract the directory path up to the GIF folder
-            Console.WriteLine(gifFilePath);
-            string gifFolderPath = Path.GetDirectoryName(gifFilePath);
-            Console.WriteLine(gifFolderPath);
-            Array.ForEach(Directory.GetFiles(gifFolderPath), File.Delete);
         }
 
         private void Form_KeyDown(object? sender, KeyEventArgs e)
@@ -546,7 +709,14 @@ namespace BetterSnippingTool.Forms
         {
             if (IsGifMode)
             {
-                ClearGifFolder(gifFilePath);
+                //Dispose of gif inside of picturebox so it can be deleted from GIF folder
+                if (pictureBox.Image != null)
+                {
+                    pictureBox.Image.Dispose();
+                    pictureBox.Image = null;
+                }
+                fileUtilities.ClearTemp();
+                fileUtilities.ClearGifFolder(gifFilePath);
             }
             Environment.Exit(0);
         }
@@ -555,7 +725,14 @@ namespace BetterSnippingTool.Forms
         {
             if (IsGifMode)
             {
-                ClearGifFolder(gifFilePath);
+                //Dispose of gif inside of picturebox so it can be deleted from GIF folder
+                if (pictureBox.Image != null)
+                {
+                    pictureBox.Image.Dispose();
+                    pictureBox.Image = null;
+                }
+                fileUtilities.ClearTemp();
+                fileUtilities.ClearGifFolder(gifFilePath);
             }
             Environment.Exit(0);
         }
@@ -608,8 +785,20 @@ namespace BetterSnippingTool.Forms
 
                 else
                 {
-                    ClearGifFolder(gifFilePath);
+                    //Dispose of gif inside of picturebox so it can be deleted from GIF folder
+                    if (pictureBox.Image != null)
+                    {
+                        pictureBox.Image.Dispose();
+                        pictureBox.Image = null;
+                    }
+                    fileUtilities.ClearTemp();
+                    fileUtilities.ClearGifFolder(gifFilePath);
                     gifImage?.Dispose();
+                    gifTrimEndLabel?.Dispose();
+                    gifTrimStartLabel?.Dispose();
+                    trimButtonOff?.Dispose();
+                    trimButtonOn?.Dispose();
+                    trimGifItem?.Dispose();
                 }
 
 
@@ -628,7 +817,6 @@ namespace BetterSnippingTool.Forms
 
             base.Dispose(disposing);
         }
-
 
         ~MediaForm()
         {

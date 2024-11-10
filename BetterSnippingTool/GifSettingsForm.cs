@@ -10,8 +10,10 @@ namespace BetterSnippingTool.Forms
 {
     public class GifSettingsForm : Form
     {
+        private System.Windows.Forms.Label gifOptimizationLabel;
         private System.Windows.Forms.ComboBox gifOptimizationLevelComboBox;
         private Dictionary<string, AppConfig.OptimizeGifCreation> outputGifOptimizationChoices;
+        private System.Windows.Forms.Label gifCustomResolutionLabel;
         private System.Windows.Forms.ComboBox gifOutputResolutionsComboBox;
         private Dictionary<string, (int width, int height)> outputResolutions;
         private int gifOutputResolutionWidth;
@@ -42,6 +44,15 @@ namespace BetterSnippingTool.Forms
             this.MinimizeBox = false;
             this.MaximizeBox = false;
 
+
+            gifOptimizationLabel = new Label
+            {
+                Location = new Point(25, 10),
+                AutoSize = true,
+                Text = "Resolution Method",
+                Font = new Font("Arial", 10, FontStyle.Bold),
+            };
+
             gifOptimizationLevelComboBox = new System.Windows.Forms.ComboBox()
             {
                 Enabled = true,
@@ -59,6 +70,14 @@ namespace BetterSnippingTool.Forms
 
             gifOptimizationLevelComboBox.Items.AddRange(outputGifOptimizationChoices.Keys.ToArray());
 
+            gifCustomResolutionLabel = new Label
+            {
+                Location = new Point(25, 70),
+                AutoSize = true,
+                Text = $"Custom Resolutions: Disabled",
+                Font = new Font("Arial", 10, FontStyle.Bold),
+            };
+
             gifOutputResolutionsComboBox = new System.Windows.Forms.ComboBox()
             {
                 Enabled = false,
@@ -68,7 +87,7 @@ namespace BetterSnippingTool.Forms
             };
 
             outputResolutions = new Dictionary<string, (int width, int height)>
-      {
+            {
                 { "240x240", (240, 240) },
                 { "320x256", (320, 256) },
                 { "360x640", (360, 640) },
@@ -97,7 +116,7 @@ namespace BetterSnippingTool.Forms
 
             gifFpsLabel = new Label
             {
-                Location = new Point(30, 120),
+                Location = new Point(25, 120),
                 AutoSize = true,
                 Text = "FPS (1-60)",
                 Font = new Font("Arial", 10, FontStyle.Bold),
@@ -116,7 +135,7 @@ namespace BetterSnippingTool.Forms
 
             gifSecondsLabel = new Label
             {
-                Location = new Point(30, 170),
+                Location = new Point(25, 170),
                 AutoSize = true,
                 Text = "Length in Seconds (1-20)",
                 Font = new Font("Arial", 10, FontStyle.Bold),
@@ -135,7 +154,7 @@ namespace BetterSnippingTool.Forms
 
             gifProfileLoaded = new Label
             {
-                Location = new Point(30, 220),
+                Location = new Point(25, 220),
                 AutoSize = true,
                 TextAlign = ContentAlignment.MiddleCenter,
                 Text = $"Profile Loaded: {AppConfig.Instance.GetCurrentFileName()}",
@@ -169,7 +188,9 @@ namespace BetterSnippingTool.Forms
                 Text = "Save Current Settings"
             };
 
+            this.Controls.Add(gifOptimizationLabel);
             this.Controls.Add(gifOptimizationLevelComboBox);
+            this.Controls.Add(gifCustomResolutionLabel);
             this.Controls.Add(gifOutputResolutionsComboBox);
             this.Controls.Add(gifFpsLabel);
             this.Controls.Add(gifFPS);
@@ -257,10 +278,12 @@ namespace BetterSnippingTool.Forms
             if (gifOptimizationLevelComboBox.SelectedItem == "Choose Custom Resolution")
             {
                 gifOutputResolutionsComboBox.Enabled = true;
+                gifCustomResolutionLabel.Text = "Custom Resolutions: Enabled";
             }
             else
             {
                 gifOutputResolutionsComboBox.Enabled = false;
+                gifCustomResolutionLabel.Text = "Custom Resolutions: Disabled";
             }
         }
 
