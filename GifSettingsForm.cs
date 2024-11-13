@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using BetterSnippingTool.Config;
+using BetterSnippingTool.Utilities;
 using System.Windows.Forms;
-using BetterSnippingTool.Config;
 
 namespace BetterSnippingTool.Forms
 {
@@ -27,16 +23,18 @@ namespace BetterSnippingTool.Forms
         private System.Windows.Forms.Button? gifLoadProfileButton;
         private System.Windows.Forms.Button? gifSaveCurrentSettingsButton;
         private bool isLoadingAppConfig;
+        private FileUtilities fileUtilities;
 
         public GifSettingsForm()
         {
+            fileUtilities = new FileUtilities();
+            this.Icon = new Icon(fileUtilities.buttonImagePaths["BS_Logo"]);
             InitializeComponent();
         }
 
         private void InitializeComponent()
         {
             //Set the icon for the form
-            this.Icon = new Icon("Resources\\BS_Logo.ico");
             this.Size = new System.Drawing.Size(300, 400);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedSingle;
@@ -305,6 +303,8 @@ namespace BetterSnippingTool.Forms
                 saveFileDialog.Filter = "XML Files (*.xml)|*.xml|All Files (*.*)|*.*";
                 saveFileDialog.DefaultExt = "xml";
                 saveFileDialog.AddExtension = true;
+                saveFileDialog.ShowHelp = false;
+                saveFileDialog.AutoUpgradeEnabled = true;
                 if (saveFileDialog.ShowDialog() == DialogResult.OK)
                 {
                     setAppConfigVariables();
@@ -318,16 +318,16 @@ namespace BetterSnippingTool.Forms
 
         private void GifLoadProfileButton_Click(object? sender, EventArgs e)
         {
-            string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            string parentDirectory = Directory.GetParent(baseDirectory).FullName;
-            string profilesPath = Path.Combine(parentDirectory, "Profiles");
             using (OpenFileDialog loadFileDialog = new OpenFileDialog())
             {
-                loadFileDialog.InitialDirectory = profilesPath;
+                loadFileDialog.InitialDirectory = fileUtilities.profilesDir;
                 loadFileDialog.Title = "Load Profile";
                 loadFileDialog.Filter = "XML Files (*.xml)|*.xml|All Files (*.*)|*.*";
                 loadFileDialog.DefaultExt = "xml";
                 loadFileDialog.AddExtension = true;
+                loadFileDialog.ShowHelp = false;
+                loadFileDialog.ShowReadOnly = false;
+                loadFileDialog.AutoUpgradeEnabled = true;
                 if (loadFileDialog.ShowDialog() == DialogResult.OK)
                 {
                     string selectedFileName = Path.GetFileNameWithoutExtension($"{loadFileDialog.FileName}.xml");

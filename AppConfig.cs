@@ -1,14 +1,12 @@
 ﻿//Configuration file used to load default values or other user created profiles.
-
-using System;
-using System.IO;
 using System.Xml.Serialization;
-
+using BetterSnippingTool.Utilities;
 
 namespace BetterSnippingTool.Config
 {
     public class AppConfig
     {
+        private static FileUtilities fileUtilities = new FileUtilities();
         public string DefaultDirectory { get; set; } = string.Empty;
         public enum OptimizeGifCreation
         {
@@ -54,10 +52,8 @@ namespace BetterSnippingTool.Config
 
         private static string GetFilePath(string fileName)
         {
-            string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            string parentDirectory = Directory.GetParent(baseDirectory).FullName;
-            string profilesPath = Path.Combine(parentDirectory, "Profiles");
-            return Path.Combine(profilesPath, $"{fileName}");
+            string profilesDir = fileUtilities.profilesDir;
+            return Path.Combine(profilesDir, $"{fileName}");
         }
 
         private static AppConfig LoadConfig(string configName)

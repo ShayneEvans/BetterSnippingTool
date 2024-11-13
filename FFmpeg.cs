@@ -1,4 +1,4 @@
-﻿using System;
+﻿//Wrapper for FFmpeg
 using System.Diagnostics;
 
 namespace BetterSnippingTool.Tools

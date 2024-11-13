@@ -10,9 +10,8 @@ namespace BetterSnippingTool
         [STAThread]
         static void Main()
         {
-            // Initialize the application configuration
+            //Initialize the application configuration
             AppConfig config = AppConfig.Instance;
-
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new BetterSnippingToolForm(false));

@@ -22,22 +22,24 @@ namespace BetterSnippingTool.Forms
             this.isGIFMode = isGIFMode;
             //Obtaining the primary screen index
             currentScreenIndex = getPrimaryScreenIndex();
-
-            //Winform attributes
-            this.BackColor = System.Drawing.Color.White;
-            this.FormBorderStyle = FormBorderStyle.None;
-            this.Cursor = CursorUtilities.LoadCustomCursor("Resources\\green_crosshair.png");
-            this.Opacity = 0.40;
-            this.TopMost = true;
+            this.Icon = new Icon(fileUtilities.buttonImagePaths["BS_Logo"]);
             this.Bounds = GetAllScreensBounds();
-            this.DoubleBuffered = false;
-            this.SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer, true);
-
-            //Event Handlers
+            InitializeComponent();
             this.MouseDown += new MouseEventHandler(Form_MouseDown);
             this.MouseMove += new MouseEventHandler(Form_MouseMove);
             this.MouseUp += new MouseEventHandler(Form_MouseUp);
             this.KeyDown += new KeyEventHandler(Form_KeyDown);
+        }
+
+        private void InitializeComponent()
+        {
+            this.BackColor = System.Drawing.Color.White;
+            this.FormBorderStyle = FormBorderStyle.None;
+            this.Cursor = CursorUtilities.LoadCustomCursor(fileUtilities.buttonImagePaths["green_crosshair"]);
+            this.Opacity = 0.40;
+            this.TopMost = true;
+            this.DoubleBuffered = false;
+            this.SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer, true);
         }
 
         //Function used to obtain the index of the primary screen so that program always opens on it/displays screenshot to it without switch.
@@ -103,6 +105,7 @@ namespace BetterSnippingTool.Forms
                 isDragging = false;
                 if (selectedArea.Width > 0 && selectedArea.Height > 0)
                 {
+                    //Open gif creator
                     if (isGIFMode)
                     {
                         this.Visible = false;
@@ -113,6 +116,7 @@ namespace BetterSnippingTool.Forms
                         }
                     }
 
+                    //Take screenshot and open media form
                     else
                     {
                         this.Opacity = 0;

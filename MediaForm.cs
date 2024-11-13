@@ -1,12 +1,10 @@
-﻿//Screenshot form opened after a screenshot is taken. Modify and do stuff with screenshot as well as save to system
+﻿//Screenshot or GIF opens in this form and you can edit and save to your system.
 using System.Collections.Specialized;
 using BetterSnippingTool.Config;
 using BetterSnippingTool.Interop;
 using BetterSnippingTool.Utilities;
 using System.Text.RegularExpressions;
 using BetterSnippingTool.Tools;
-using System.Diagnostics;
-
 
 namespace BetterSnippingTool.Forms
 {
@@ -59,6 +57,7 @@ namespace BetterSnippingTool.Forms
         public MediaForm(string gifFilePath, int monitorIndex)
         {
             fileUtilities = new FileUtilities();
+            this.Icon = new Icon(fileUtilities.buttonImagePaths["BS_Logo"]);
             IsGifMode = true;
             this.gifFilePath = gifFilePath;
 
@@ -76,6 +75,8 @@ namespace BetterSnippingTool.Forms
         //For screenshots
         public MediaForm(Bitmap bitmap, int monitorIndex)
         {
+            fileUtilities = new FileUtilities();
+            this.Icon = new Icon(fileUtilities.buttonImagePaths["BS_Logo"]);
             IsGifMode = false;
             InitializeComponent();
 
@@ -110,7 +111,6 @@ namespace BetterSnippingTool.Forms
         {
             this.Text = "Better Snipping Tool";
             //Set the icon for the form
-            this.Icon = new Icon("Resources\\BS_Logo.ico");
 
             //Primary Menu Strip
             menuStrip = new MenuStrip();
@@ -132,10 +132,10 @@ namespace BetterSnippingTool.Forms
             this.Controls.Add(this.pictureBox);
 
             //Tool Strip Menu Items (Buttons)
-            Image newSnipButton = Image.FromFile("Resources\\Button_Images\\New_Snip_Button.png");
-            Image newGifButton = Image.FromFile("Resources\\Button_Images\\New_GIF_Button.png");
-            Image saveButton = Image.FromFile("Resources\\Button_Images\\Save_Button.png");
-            Image trimButton = Image.FromFile("Resources\\Button_Images\\Trim_Button.png");
+            Image newSnipButton = Image.FromFile(fileUtilities.buttonImagePaths["New_Snip_Button"]);
+            Image newGifButton = Image.FromFile(fileUtilities.buttonImagePaths["New_GIF_Button"]);
+            Image saveButton = Image.FromFile(fileUtilities.buttonImagePaths["Save_Button"]);
+            Image trimButton = Image.FromFile(fileUtilities.buttonImagePaths["Trim_Button"]);
 
             newSnipItem = new ToolStripMenuItem(newSnipButton)
             {
@@ -164,8 +164,8 @@ namespace BetterSnippingTool.Forms
             //Non GIF Mode gets extra buttons for drawing
             if (!IsGifMode)
             {
-                paintButtonOff = Image.FromFile("Resources\\Button_Images\\Paint_Button_Off.png");
-                paintButtonOn = Image.FromFile("Resources\\Button_Images\\Paint_Button_On.png");
+                paintButtonOff = Image.FromFile(fileUtilities.buttonImagePaths["Paint_Button_Off"]);
+                paintButtonOn = Image.FromFile(fileUtilities.buttonImagePaths["Paint_Button_On"]);
                 drawItem = new ToolStripSplitButton(paintButtonOff)
                 {
                     ImageAlign = ContentAlignment.MiddleLeft,
@@ -188,12 +188,12 @@ namespace BetterSnippingTool.Forms
                 pictureBox.MouseMove += new MouseEventHandler(paint_MouseMove);
                 pictureBox.MouseUp += new MouseEventHandler(paint_MouseUp);
             }
-
+            //GIF Mode
             else
             {
                 submenuStrip = new MenuStrip();
-                trimButtonOff = Image.FromFile("Resources\\Button_Images\\Trim_Button_Off.png");
-                trimButtonOn = Image.FromFile("Resources\\Button_Images\\Trim_Button_On.png");
+                trimButtonOff = Image.FromFile(fileUtilities.buttonImagePaths["Trim_Button_Off"]);
+                trimButtonOn = Image.FromFile(fileUtilities.buttonImagePaths["Trim_Button_On"]);
                 trimGifItem = new ToolStripSplitButton(trimButtonOff)
                 {
                     ImageAlign = ContentAlignment.MiddleLeft,
@@ -307,6 +307,7 @@ namespace BetterSnippingTool.Forms
                     saveFileDialog.Filter = "GIF Files (*.gif)|*.gif|All Files (*.*)|*.*";
                     saveFileDialog.DefaultExt = "gif";
                     saveFileDialog.AddExtension = true;
+                    saveFileDialog.AutoUpgradeEnabled = true;
                     if (saveFileDialog.ShowDialog() == DialogResult.OK)
                     {
                         //Move file to the new directory with new name and delete the original
@@ -318,6 +319,7 @@ namespace BetterSnippingTool.Forms
                 {
                     saveFileDialog.Title = "Save As";
                     saveFileDialog.Filter = "PNG Files (*.png)|*.png|JPEG Files (*.jpg)|*.jpg|Bitmap Files (*.bmp)|*.bmp";
+                    saveFileDialog.AutoUpgradeEnabled = true;
                     if (saveFileDialog.ShowDialog() == DialogResult.OK)
                     {
                         drawingBitmap.Save(saveFileDialog.FileName);
@@ -326,6 +328,7 @@ namespace BetterSnippingTool.Forms
             }
         }
 
+        //Selecting the starting 
         private void Select_Trim_Start_Frame(object? sender, EventArgs e)
         {
             using (OpenFileDialog openFileDialog = new OpenFileDialog())
@@ -334,7 +337,9 @@ namespace BetterSnippingTool.Forms
                 openFileDialog.InitialDirectory = fileUtilities.tempDir;
                 openFileDialog.Filter = "GIF Frames (frame_*)|frame_*";
                 openFileDialog.ShowReadOnly = true;
+                openFileDialog.ShowHelp = false;
                 openFileDialog.RestoreDirectory = true;
+                openFileDialog.AutoUpgradeEnabled = true;
 
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
@@ -362,7 +367,9 @@ namespace BetterSnippingTool.Forms
                 openFileDialog.InitialDirectory = fileUtilities.tempDir;
                 openFileDialog.Filter = "GIF Frames (frame_*)|frame_*";
                 openFileDialog.ShowReadOnly = true;
+                openFileDialog.ShowHelp = false;
                 openFileDialog.RestoreDirectory = true;
+                openFileDialog.AutoUpgradeEnabled = true;
 
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
@@ -400,7 +407,7 @@ namespace BetterSnippingTool.Forms
             //User must select a starting and ending frame to trim
             if (trimStartDir != null && trimEndDir != null)
             {
-                FFmpeg.run_command("E:\\Visual Studio\\SnippingToolClone\\BetterSnippingTool\\ffmpeg\\ffmpeg.exe",
+                FFmpeg.run_command(fileUtilities.ffmpegDir,
                     $"-framerate {AppConfig.Instance.FPS} -start_number {start_frame} -i \"{Path.Combine(fileUtilities.tempDir, "frame_%d.png")}\" " +
                     $"-i \"{Path.Combine(fileUtilities.outputDir, "palette.png")}\" -filter_complex " +
                     $"\"fps={AppConfig.Instance.FPS},format=rgba,paletteuse=dither=sierra2_4a\" " +
@@ -549,7 +556,6 @@ namespace BetterSnippingTool.Forms
             {
                 this.inImagesBounds = false;
             }
-
         }
 
         private void paint_MouseUp(object? sender, MouseEventArgs e)

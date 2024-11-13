@@ -1,13 +1,10 @@
-﻿using System;
-using System.Drawing;
+﻿//Using platform invoking to copy bitmap, memory efficient.
 using System.Runtime.InteropServices;
 
 namespace BetterSnippingTool.Interop
 {
     public static class PInvoke_Clipboard
     {
-        //Declaring all platform invoke attributes
-
         //A handle (pointer) to a bitmap (HBITMAP)
         const int CF_BITMAP = 2;
         const int CF_HDROP = 15;

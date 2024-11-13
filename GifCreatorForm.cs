@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿//Form used to create a GIF
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing.Imaging;
 using BetterSnippingTool.Config;
@@ -9,6 +10,7 @@ namespace BetterSnippingTool.Forms
 {
     public class GifCreatorForm : Form
     {
+        private FileUtilities fileUtilities;
         private bool _disposed = false;
         private System.Drawing.Rectangle selectedArea;
         private int borderSize = 5;
@@ -41,6 +43,7 @@ namespace BetterSnippingTool.Forms
         private (int, int) gifDimensions;
         public GifCreatorForm(string tempDir, string outputDir, System.Drawing.Rectangle selectedArea, int currentScreenIndex)
         {
+            fileUtilities = new FileUtilities();
             this.titleBarHeight = SystemInformation.CaptionHeight;
             this.selectedArea = selectedArea;
             this.outputDir = outputDir;
@@ -73,7 +76,7 @@ namespace BetterSnippingTool.Forms
             this.framerate = AppConfig.Instance.FPS;
             this.gifSeconds = AppConfig.Instance.Seconds;
             this.gifDimensions = AppConfig.Instance.gifOutputResolution;
-            this.Icon = new Icon("Resources\\BS_Logo.ico");
+            this.Icon = new Icon(fileUtilities.buttonImagePaths["BS_Logo"]);
             this.Text = "GIF Creator";
             this.StartPosition = FormStartPosition.Manual;
             this.ControlBox = false;
@@ -84,13 +87,13 @@ namespace BetterSnippingTool.Forms
             this.DoubleBuffered = true;
 
             //Tool Strip Menu Items (Buttons)
-            playItemButton = Image.FromFile("Resources\\Button_Images\\Play_Button.png");
-            pauseItemButton = Image.FromFile("Resources\\Button_Images\\Pause_Button.png");
-            stopItemButton = Image.FromFile("Resources\\Button_Images\\Stop_Button.png");
-            redoItemButton = Image.FromFile("Resources\\Button_Images\\New_GIF_Button_REDO.png");
-            newSnipButton = Image.FromFile("Resources\\Button_Images\\New_Snip_Button_REDO.png");
-            settingsItemButton = Image.FromFile("Resources\\Button_Images\\Settings_Button.png");
-            exitItemButton = Image.FromFile("Resources\\Button_Images\\Exit_Button.png");
+            playItemButton = Image.FromFile(fileUtilities.buttonImagePaths["Play_Button"]);
+            pauseItemButton = Image.FromFile(fileUtilities.buttonImagePaths["Pause_Button"]);
+            stopItemButton = Image.FromFile(fileUtilities.buttonImagePaths["Stop_Button"]);
+            redoItemButton = Image.FromFile(fileUtilities.buttonImagePaths["New_GIF_Button_REDO"]);
+            newSnipButton = Image.FromFile(fileUtilities.buttonImagePaths["New_Snip_Button_REDO"]);
+            settingsItemButton = Image.FromFile(fileUtilities.buttonImagePaths["Settings_Button"]);
+            exitItemButton = Image.FromFile(fileUtilities.buttonImagePaths["Exit_Button"]);
 
             playItem = new ToolStripMenuItem(playItemButton)
             {
@@ -229,9 +232,9 @@ namespace BetterSnippingTool.Forms
             }
 
             CreateGIFScreenshots(framerate, seconds, tempDir, selectedArea, resizeResolution.Item1, resizeResolution.Item2, worker, e);
-            FFmpeg.run_command("E:\\Visual Studio\\SnippingToolClone\\BetterSnippingTool\\ffmpeg\\ffmpeg.exe",
+            FFmpeg.run_command(fileUtilities.ffmpegDir,
             $"-framerate {framerate} -i \"{Path.Combine(tempDir, "frame_%d.png")}\" -vf \"palettegen=max_colors=256:reserve_transparent=0\" -y \"{Path.Combine(outputDir, "palette.png")}\"");
-            FFmpeg.run_command("E:\\Visual Studio\\SnippingToolClone\\BetterSnippingTool\\ffmpeg\\ffmpeg.exe",
+            FFmpeg.run_command(fileUtilities.ffmpegDir,
             $"-framerate {framerate} -i \"{Path.Combine(tempDir, "frame_%d.png")}\" -i \"{Path.Combine(outputDir, "palette.png")}\" -filter_complex \"fps={framerate},format=rgba,paletteuse=dither=sierra2_4a\" -y \"{Path.Combine(outputDir, $"output_{framerate}.gif")}\"");
 
             this.Invoke((Action)(() =>
