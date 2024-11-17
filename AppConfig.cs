@@ -6,7 +6,6 @@ namespace BetterSnippingTool.Config
 {
     public class AppConfig
     {
-        private static FileUtilities fileUtilities = new FileUtilities();
         public string DefaultDirectory { get; set; } = string.Empty;
         public enum OptimizeGifCreation
         {
@@ -52,7 +51,7 @@ namespace BetterSnippingTool.Config
 
         private static string GetFilePath(string fileName)
         {
-            string profilesDir = fileUtilities.profilesDir;
+            string profilesDir = FileUtilities.ProfilesDir;
             return Path.Combine(profilesDir, $"{fileName}");
         }
 

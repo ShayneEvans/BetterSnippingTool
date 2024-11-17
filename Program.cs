@@ -1,5 +1,6 @@
 using BetterSnippingTool.Forms;
 using BetterSnippingTool.Config;
+using BetterSnippingTool.Utilities;
 
 namespace BetterSnippingTool
 {

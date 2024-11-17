@@ -7,7 +7,6 @@ namespace BetterSnippingTool.Forms
     //BetterSnippingTool form
     public class BetterSnippingToolForm : Form
     {
-        private FileUtilities fileUtilities;
         //Current Screen Index used to switch between multiple displays with arrows keys, temp solution until find out how to highlight all windows (might be imp)
         private int currentScreenIndex;
         private bool isDragging = false;
@@ -18,11 +17,10 @@ namespace BetterSnippingTool.Forms
 
         public BetterSnippingToolForm(bool isGIFMode)
         {
-            fileUtilities = new FileUtilities();
             this.isGIFMode = isGIFMode;
             //Obtaining the primary screen index
             currentScreenIndex = getPrimaryScreenIndex();
-            this.Icon = new Icon(fileUtilities.buttonImagePaths["BS_Logo"]);
+            this.Icon = new Icon(FileUtilities.ButtonImagePaths["BS_Logo"]);
             this.Bounds = GetAllScreensBounds();
             InitializeComponent();
             this.MouseDown += new MouseEventHandler(Form_MouseDown);
@@ -35,7 +33,7 @@ namespace BetterSnippingTool.Forms
         {
             this.BackColor = System.Drawing.Color.White;
             this.FormBorderStyle = FormBorderStyle.None;
-            this.Cursor = CursorUtilities.LoadCustomCursor(fileUtilities.buttonImagePaths["green_crosshair"]);
+            this.Cursor = CursorUtilities.LoadCustomCursor(FileUtilities.ButtonImagePaths["green_crosshair"]);
             this.Opacity = 0.40;
             this.TopMost = true;
             this.DoubleBuffered = false;
@@ -109,7 +107,7 @@ namespace BetterSnippingTool.Forms
                     if (isGIFMode)
                     {
                         this.Visible = false;
-                        using (GifCreatorForm gifCreatorForm = new GifCreatorForm(fileUtilities.tempDir, fileUtilities.outputDir, selectedArea, currentScreenIndex))
+                        using (GifCreatorForm gifCreatorForm = new GifCreatorForm(selectedArea, currentScreenIndex))
                         {
                             gifCreatorForm.FormClosed += (s, args) => this.Close();
                             gifCreatorForm.ShowDialog();

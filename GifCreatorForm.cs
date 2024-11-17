@@ -10,7 +10,6 @@ namespace BetterSnippingTool.Forms
 {
     public class GifCreatorForm : Form
     {
-        private FileUtilities fileUtilities;
         private bool _disposed = false;
         private System.Drawing.Rectangle selectedArea;
         private int borderSize = 5;
@@ -33,21 +32,16 @@ namespace BetterSnippingTool.Forms
         private Rectangle gifArea;
         private BackgroundWorker backgroundWorker;
         private int titleBarHeight;
-        private string tempDir;
-        private string outputDir;
         private bool _isPaused = false;
         private bool _isStopped = false;
         private int currentScreenIndex;
         private int framerate;
         private int gifSeconds;
         private (int, int) gifDimensions;
-        public GifCreatorForm(string tempDir, string outputDir, System.Drawing.Rectangle selectedArea, int currentScreenIndex)
+        public GifCreatorForm(System.Drawing.Rectangle selectedArea, int currentScreenIndex)
         {
-            fileUtilities = new FileUtilities();
             this.titleBarHeight = SystemInformation.CaptionHeight;
             this.selectedArea = selectedArea;
-            this.outputDir = outputDir;
-            this.tempDir = tempDir;
             this.currentScreenIndex = currentScreenIndex;
             //borderSize / 2 to avoid red lines in gif output
             this.gifArea = new Rectangle(borderSize / 2, borderSize / 2, selectedArea.Width + borderSize, selectedArea.Height + borderSize);
@@ -76,7 +70,7 @@ namespace BetterSnippingTool.Forms
             this.framerate = AppConfig.Instance.FPS;
             this.gifSeconds = AppConfig.Instance.Seconds;
             this.gifDimensions = AppConfig.Instance.gifOutputResolution;
-            this.Icon = new Icon(fileUtilities.buttonImagePaths["BS_Logo"]);
+            this.Icon = new Icon(FileUtilities.ButtonImagePaths["BS_Logo"]);
             this.Text = "GIF Creator";
             this.StartPosition = FormStartPosition.Manual;
             this.ControlBox = false;
@@ -87,13 +81,13 @@ namespace BetterSnippingTool.Forms
             this.DoubleBuffered = true;
 
             //Tool Strip Menu Items (Buttons)
-            playItemButton = Image.FromFile(fileUtilities.buttonImagePaths["Play_Button"]);
-            pauseItemButton = Image.FromFile(fileUtilities.buttonImagePaths["Pause_Button"]);
-            stopItemButton = Image.FromFile(fileUtilities.buttonImagePaths["Stop_Button"]);
-            redoItemButton = Image.FromFile(fileUtilities.buttonImagePaths["New_GIF_Button_REDO"]);
-            newSnipButton = Image.FromFile(fileUtilities.buttonImagePaths["New_Snip_Button_REDO"]);
-            settingsItemButton = Image.FromFile(fileUtilities.buttonImagePaths["Settings_Button"]);
-            exitItemButton = Image.FromFile(fileUtilities.buttonImagePaths["Exit_Button"]);
+            playItemButton = Image.FromFile(FileUtilities.ButtonImagePaths["Play_Button"]);
+            pauseItemButton = Image.FromFile(FileUtilities.ButtonImagePaths["Pause_Button"]);
+            stopItemButton = Image.FromFile(FileUtilities.ButtonImagePaths["Stop_Button"]);
+            redoItemButton = Image.FromFile(FileUtilities.ButtonImagePaths["New_GIF_Button_REDO"]);
+            newSnipButton = Image.FromFile(FileUtilities.ButtonImagePaths["New_Snip_Button_REDO"]);
+            settingsItemButton = Image.FromFile(FileUtilities.ButtonImagePaths["Settings_Button"]);
+            exitItemButton = Image.FromFile(FileUtilities.ButtonImagePaths["Exit_Button"]);
 
             playItem = new ToolStripMenuItem(playItemButton)
             {
@@ -231,15 +225,15 @@ namespace BetterSnippingTool.Forms
                 resizeResolution = AppConfig.Instance.gifOutputResolution;
             }
 
-            CreateGIFScreenshots(framerate, seconds, tempDir, selectedArea, resizeResolution.Item1, resizeResolution.Item2, worker, e);
-            FFmpeg.run_command(fileUtilities.ffmpegDir,
-            $"-framerate {framerate} -i \"{Path.Combine(tempDir, "frame_%d.png")}\" -vf \"palettegen=max_colors=256:reserve_transparent=0\" -y \"{Path.Combine(outputDir, "palette.png")}\"");
-            FFmpeg.run_command(fileUtilities.ffmpegDir,
-            $"-framerate {framerate} -i \"{Path.Combine(tempDir, "frame_%d.png")}\" -i \"{Path.Combine(outputDir, "palette.png")}\" -filter_complex \"fps={framerate},format=rgba,paletteuse=dither=sierra2_4a\" -y \"{Path.Combine(outputDir, $"output_{framerate}.gif")}\"");
+            CreateGIFScreenshots(framerate, seconds, FileUtilities.GifTempScreenshotsDir, selectedArea, resizeResolution.Item1, resizeResolution.Item2, worker, e);
+            FFmpeg.run_command(FileUtilities.FFmpegDir,
+            $"-framerate {framerate} -i \"{Path.Combine(FileUtilities.GifTempScreenshotsDir, "frame_%d.png")}\" -vf \"palettegen=max_colors=256:reserve_transparent=0\" -y \"{Path.Combine(FileUtilities.GifTempDir, "palette.png")}\"");
+            FFmpeg.run_command(FileUtilities.FFmpegDir,
+            $"-framerate {framerate} -i \"{Path.Combine(FileUtilities.GifTempScreenshotsDir, "frame_%d.png")}\" -i \"{Path.Combine(FileUtilities.GifTempDir, "palette.png")}\" -filter_complex \"fps={framerate},format=rgba,paletteuse=dither=sierra2_4a\" -y \"{Path.Combine(FileUtilities.GifTempDir, $"output_{framerate}.gif")}\"");
 
             this.Invoke((Action)(() =>
             {
-                MediaForm gifForm = new MediaForm(Path.Combine(outputDir, $"output_{framerate}.gif"), currentScreenIndex);
+                MediaForm gifForm = new MediaForm(Path.Combine(FileUtilities.GifTempDir, $"output_{framerate}.gif"), currentScreenIndex);
                 this.Hide();
                 gifForm.Closed += (s, args) => this.Close();
                 gifForm.Show();
@@ -446,7 +440,7 @@ namespace BetterSnippingTool.Forms
                         gResized.DrawImage(screenshot, 0, 0, resizeWidth, resizeHeight);
                     }
 
-                    string filePath = Path.Combine(tempDir, $"frame_{i}.png");
+                    string filePath = Path.Combine(FileUtilities.GifTempScreenshotsDir, $"frame_{i}.png");
                     resizedScreenshot.Save(filePath, ImageFormat.Png);
 
                     //Timing for next frame

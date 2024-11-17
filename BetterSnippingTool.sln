@@ -5,6 +5,8 @@ VisualStudioVersion = 17.8.34322.80
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BetterSnippingTool", "BetterSnippingTool.csproj", "{21BCB27A-7A6E-47D3-A170-872246D29E68}"
 EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "BetterSnippingToolSetup", "..\BetterSnippingToolSetup\BetterSnippingToolSetup.vdproj", "{806869C1-D608-46EA-BC35-2D82F08CE3C6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,8 @@ Global
 		{21BCB27A-7A6E-47D3-A170-872246D29E68}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{21BCB27A-7A6E-47D3-A170-872246D29E68}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{21BCB27A-7A6E-47D3-A170-872246D29E68}.Release|Any CPU.Build.0 = Release|Any CPU
+		{806869C1-D608-46EA-BC35-2D82F08CE3C6}.Debug|Any CPU.ActiveCfg = Debug
+		{806869C1-D608-46EA-BC35-2D82F08CE3C6}.Release|Any CPU.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

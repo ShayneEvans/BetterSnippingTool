@@ -1,100 +1,133 @@
-﻿//Used to manage and organize file system paths
+﻿using System.Diagnostics;
+
 namespace BetterSnippingTool.Utilities
 {
-    public class FileUtilities
+    public static class FileUtilities
     {
-        public string executableDirectory = AppDomain.CurrentDomain.BaseDirectory;
-        public string outputDir;
-        public string tempDir;
-        public string ffmpegDir;
-        public string resourcesDir;
-        public string solutionDir;
-        public string profilesDir;
-        public Dictionary<string, string> buttonImagePaths { get; }
+        public static string ExecutableDir { get; private set; }
+        public static string BaseDir { get; private set; }
+        public static string BaseTempDir { get; private set; }
+        public static string GifTempDir { get; private set; }
+        public static string GifTempScreenshotsDir { get; private set; }
+        public static string FFmpegDir { get; private set; }
+        public static string ResourcesDir { get; private set; }
+        public static string ProfilesDir { get; private set; }
+        public static Dictionary<string, string> ButtonImagePaths { get; private set; }
 
-        public FileUtilities() 
+        static FileUtilities()
         {
-            this.solutionDir = Path.GetFullPath(Path.Combine(executableDirectory, @"..\..\..\"));
-            this.ffmpegDir = GetFFmpegDir();
-            this.outputDir = GetGifOutputDir();
-            this.tempDir = GetGifTempDir();
-            this.resourcesDir = GetResourceDir();
-            this.profilesDir = GetProfileDir();
-            this.buttonImagePaths = new Dictionary<string, string>
+            //Initialize the base directory and depdency directories
+            ExecutableDir = AppDomain.CurrentDomain.BaseDirectory;
+            BaseDir = GetBaseDir();
+            FFmpegDir = Path.Combine(BaseDir, "ffmpeg", "ffmpeg.exe");
+            ResourcesDir = Path.Combine(BaseDir, "Resources");
+
+            //Temp Directories
+            BaseTempDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "BetterSnippingTool_Temp");
+            GifTempDir = Path.Combine(BaseTempDir, "GIF");
+            GifTempScreenshotsDir = Path.Combine(GifTempDir, "GIF_Temp_Screenshots");
+            ProfilesDir = Path.Combine(BaseTempDir, "Profiles");
+
+            //Create necessary temp folders if not already created
+            CreateTempFolders();
+
+            //Initialize the button image paths
+            ButtonImagePaths = InitializeButtonImagePaths();
+        }
+
+        //Method to determine base directory depending on the environment
+        private static string GetBaseDir()
+        {
+            string executableDir = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+
+            //Check if running in a development environment
+            if (IsDevelopmentEnvironment(executableDir))
             {
-                {"BS_Logo", Path.Combine(resourcesDir, "BS_Logo.ico")},
-                {"green_crosshair", Path.Combine(resourcesDir, "green_crosshair.png")},
-                {"New_Snip_Button", Path.Combine(resourcesDir, "Button_Images", "New_Snip_Button.png")},
-                {"New_GIF_Button", Path.Combine(resourcesDir, "Button_Images", "New_GIF_Button.png")},
-                {"Save_Button", Path.Combine(resourcesDir, "Button_Images", "Save_Button.png")},
-                {"Trim_Button", Path.Combine(resourcesDir, "Button_Images", "Trim_Button.png")},
-                {"Paint_Button_Off", Path.Combine(resourcesDir, "Button_Images", "Paint_Button_Off.png")},
-                {"Paint_Button_On", Path.Combine(resourcesDir, "Button_Images", "Paint_Button_On.png")},
-                {"Trim_Button_Off", Path.Combine(resourcesDir, "Button_Images", "Trim_Button_Off.png")},
-                {"Trim_Button_On", Path.Combine(resourcesDir, "Button_Images", "Trim_Button_On.png")},
-                {"Play_Button", Path.Combine(resourcesDir, "Button_Images", "Play_Button.png")},
-                {"Pause_Button", Path.Combine(resourcesDir, "Button_Images", "Pause_Button.png")},
-                {"Stop_Button", Path.Combine(resourcesDir, "Button_Images", "Stop_Button.png")},
-                {"New_GIF_Button_REDO", Path.Combine(resourcesDir, "Button_Images", "New_GIF_Button_REDO.png")},
-                {"New_Snip_Button_REDO", Path.Combine(resourcesDir, "Button_Images", "New_Snip_Button_REDO.png")},
-                {"Settings_Button", Path.Combine(resourcesDir, "Button_Images", "Settings_Button.png")},
-                {"Exit_Button", Path.Combine(resourcesDir, "Button_Images", "Exit_Button.png")},
+                //Running in Visual Studio (Debug or Release mode)
+                return Path.GetFullPath(Path.Combine(executableDir, @"..\..\..\"));
+            }
+            else
+            {
+                //Running in production (published app)
+                return Path.GetFullPath(executableDir);
+            }
+        }
+
+        // Method to initialize button image paths
+        private static Dictionary<string, string> InitializeButtonImagePaths()
+        {
+            return new Dictionary<string, string>
+            {
+                { "BS_Logo", Path.Combine(ResourcesDir, "BS_Logo.ico") },
+                { "green_crosshair", Path.Combine(ResourcesDir, "green_crosshair.png") },
+                { "New_Snip_Button", Path.Combine(ResourcesDir, "Button_Images", "New_Snip_Button.png") },
+                { "New_GIF_Button", Path.Combine(ResourcesDir, "Button_Images", "New_GIF_Button.png") },
+                { "Save_Button", Path.Combine(ResourcesDir, "Button_Images", "Save_Button.png") },
+                { "Trim_Button", Path.Combine(ResourcesDir, "Button_Images", "Trim_Button.png") },
+                { "Paint_Button_Off", Path.Combine(ResourcesDir, "Button_Images", "Paint_Button_Off.png") },
+                { "Paint_Button_On", Path.Combine(ResourcesDir, "Button_Images", "Paint_Button_On.png") },
+                { "Trim_Button_Off", Path.Combine(ResourcesDir, "Button_Images", "Trim_Button_Off.png") },
+                { "Trim_Button_On", Path.Combine(ResourcesDir, "Button_Images", "Trim_Button_On.png") },
+                { "Play_Button", Path.Combine(ResourcesDir, "Button_Images", "Play_Button.png") },
+                { "Pause_Button", Path.Combine(ResourcesDir, "Button_Images", "Pause_Button.png") },
+                { "Stop_Button", Path.Combine(ResourcesDir, "Button_Images", "Stop_Button.png") },
+                { "New_GIF_Button_REDO", Path.Combine(ResourcesDir, "Button_Images", "New_GIF_Button_REDO.png") },
+                { "New_Snip_Button_REDO", Path.Combine(ResourcesDir, "Button_Images", "New_Snip_Button_REDO.png") },
+                { "Settings_Button", Path.Combine(ResourcesDir, "Button_Images", "Settings_Button.png") },
+                { "Exit_Button", Path.Combine(ResourcesDir, "Button_Images", "Exit_Button.png") }
             };
         }
 
-        //Clears temp folder of all temp files
-        public void ClearTemp()
+        //Creates temp directories if they don't exist
+        private static void CreateTempFolders()
         {
             try
             {
-                if (Directory.Exists(this.tempDir))
+                //Create all required directories if they don't exist
+                Directory.CreateDirectory(BaseTempDir);
+                Directory.CreateDirectory(GifTempDir);
+                Directory.CreateDirectory(Path.Combine(GifTempDir, "GIF_Temp_Screenshots"));
+                Directory.CreateDirectory(ProfilesDir);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error creating temp directories: {ex.Message}");
+            }
+        }
+
+        //Clears the temp directory of all temp files
+        public static void ClearTemp()
+        {
+            try
+            {
+                if (Directory.Exists(GifTempScreenshotsDir))
                 {
-                    Array.ForEach(Directory.GetFiles(this.tempDir), File.Delete);
+                    Array.ForEach(Directory.GetFiles(GifTempScreenshotsDir), File.Delete);
                 }
             }
-
             catch (Exception ex)
             {
                 Console.WriteLine($"Error clearing temp directory: {ex.Message}");
             }
         }
 
-        //Deletes gif file
-        public void ClearGifFolder(string gifFilePath)
+        //Deletes all files in the specified GIF folder
+        public static void ClearGifFolder(string gifFilePath)
         {
-            //Extract the directory path up to the GIF folder
-            string gifFolderPath = Path.GetDirectoryName(gifFilePath);
-            Array.ForEach(Directory.GetFiles(gifFolderPath), File.Delete);
+            try
+            {
+                string gifFolderPath = Path.GetDirectoryName(gifFilePath);
+                Array.ForEach(Directory.GetFiles(gifFolderPath), File.Delete);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error clearing GIF folder: {ex.Message}");
+            }
         }
 
-        public string GetFFmpegDir()
+        private static bool IsDevelopmentEnvironment(string executableDir)
         {
-            string ffmpegPath = Path.Combine(solutionDir, "ffmpeg", "ffmpeg.exe");
-            return ffmpegPath;
-        }
-
-        public string GetResourceDir()
-        {
-            string resourcesPath = Path.Combine(solutionDir, "Resources");
-            return resourcesPath;
-        }
-
-        public string GetGifOutputDir()
-        {
-            string gifOutputPath = Path.Combine(solutionDir, "GIF");
-            return gifOutputPath;
-        }
-
-        public string GetGifTempDir()
-        {
-            string gifOutputPath = Path.Combine(solutionDir, "GIF\\GIF_Temp_Screenshots");
-            return gifOutputPath;
-        }
-
-        public string GetProfileDir()
-        {
-            string profilesPath = Path.Combine(solutionDir, "Profiles");
-            return profilesPath;
+            return executableDir.Contains(@"\bin\Debug\") || executableDir.Contains(@"\bin\Release\");
         }
     }
 }

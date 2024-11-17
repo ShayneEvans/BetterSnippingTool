@@ -23,12 +23,10 @@ namespace BetterSnippingTool.Forms
         private System.Windows.Forms.Button? gifLoadProfileButton;
         private System.Windows.Forms.Button? gifSaveCurrentSettingsButton;
         private bool isLoadingAppConfig;
-        private FileUtilities fileUtilities;
 
         public GifSettingsForm()
         {
-            fileUtilities = new FileUtilities();
-            this.Icon = new Icon(fileUtilities.buttonImagePaths["BS_Logo"]);
+            this.Icon = new Icon(FileUtilities.ButtonImagePaths["BS_Logo"]);
             InitializeComponent();
         }
 
@@ -293,12 +291,9 @@ namespace BetterSnippingTool.Forms
 
         private void GifSaveProfileButton_Click(object? sender, EventArgs e)
         {
-            string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            string parentDirectory = Directory.GetParent(baseDirectory).FullName;
-            string profilesPath = Path.Combine(parentDirectory, "Profiles");
             using (SaveFileDialog saveFileDialog = new SaveFileDialog())
             {
-                saveFileDialog.InitialDirectory = profilesPath;
+                saveFileDialog.InitialDirectory = FileUtilities.ProfilesDir;
                 saveFileDialog.Title = "Save Profile";
                 saveFileDialog.Filter = "XML Files (*.xml)|*.xml|All Files (*.*)|*.*";
                 saveFileDialog.DefaultExt = "xml";
@@ -320,7 +315,7 @@ namespace BetterSnippingTool.Forms
         {
             using (OpenFileDialog loadFileDialog = new OpenFileDialog())
             {
-                loadFileDialog.InitialDirectory = fileUtilities.profilesDir;
+                loadFileDialog.InitialDirectory = FileUtilities.ProfilesDir;
                 loadFileDialog.Title = "Load Profile";
                 loadFileDialog.Filter = "XML Files (*.xml)|*.xml|All Files (*.*)|*.*";
                 loadFileDialog.DefaultExt = "xml";
