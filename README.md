@@ -4,24 +4,24 @@ The Better Snipping Tool was born from a simple annoyance: the extra click requi
 
 # Examples
 ## Snipping
-![snip_example](https://github.com/user-attachments/assets/d79b4ced-f3df-4816-b099-30f338e26d91)
-Example of a screenshot captured using the Better Snipping Tool.
+![snip_example](https://github.com/user-attachments/assets/d79b4ced-f3df-4816-b099-30f338e26d91)  
+*Example of a screenshot captured using the Better Snipping Tool.*
 
 ## Painting
-![snip_paint_example](https://github.com/user-attachments/assets/1085f151-228e-4c7a-8886-541911131ce0)
-Example of a painting on a screenshot captured with the Better Snipping Tool.
+![snip_paint_example](https://github.com/user-attachments/assets/1085f151-228e-4c7a-8886-541911131ce0)  
+*Example of a painting on a screenshot captured with the Better Snipping Tool.*
 
 ## GIF Creation
-![chuck_fall_gif](https://github.com/user-attachments/assets/a96dc453-350b-4b2a-b79b-d8eddc716ce6)
-Example of an endlessly looping GIF captured using Better Snipping Tool.
+![chuck_fall_gif](https://github.com/user-attachments/assets/a96dc453-350b-4b2a-b79b-d8eddc716ce6)  
+*Example of an endlessly looping GIF captured using Better Snipping Tool.*
 
 ## Trimming
-![trimming](https://github.com/user-attachments/assets/644e1766-41cf-4993-ac51-77ca726317ed)
-Trimming menu that pops up when enabling trimming, user selects starting and ending frames.
+![trimming](https://github.com/user-attachments/assets/644e1766-41cf-4993-ac51-77ca726317ed)  
+*Trimming menu that pops up when enabling trimming, user selects starting and ending frames.*
 
 ## GIF Settings
-![gif_settings](https://github.com/user-attachments/assets/be2ccc01-6685-4afe-a66e-cbaca3da5f5f)
-The GIF Settings form.
+![gif_settings](https://github.com/user-attachments/assets/be2ccc01-6685-4afe-a66e-cbaca3da5f5f)  
+*The GIF Settings form.*
 
 # Requirements
 - Operating System: Windows 10/11 (Linux planned).
