@@ -87,12 +87,14 @@ Follow the steps below to install a minimal FFmpeg build with GIF support.
     
     -   If you encounter the error `gcc is unable to create an executable file`, install additional MinGW libraries with the following command:  
         `pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-pkg-config mingw-w64-x86_64-zlib`
+    -   If this doesn't work it is possible GCC isn't installed. This can be checked by doing `gcc --version`, if it doesn't work it's not installed. Execute this 	command to install gcc: `pacman -S mingw-w64-x86_64-gcc`. if `gcc --version` doesn't work after this make sure it appears in your PATH. The MSYS2 MinGW 	environment should automatically set this up, but you can verify by checking: `echo $PATH`. If the output does not include `/mingw64/bin` then add it 		manually with `export PATH=$PATH:/mingw64/bin`. After this hopefully `gcc --version` should work.
+    -   Another potential error will be `nasm not found or too old. Please install/pdate nasm or use --disablex86asm for a build without hand-optimzied assembly` 	this can be remedied with `pacman -S nasm`.
 6.  **Compile FFmpeg**  
     Run the following command to compile FFmpeg:  
     `make -j4`
     
 7.  **Gather Required Files**  
-    After the build completes, you will need the following files from the **MinGW/bin** directory:
+    After the build completes, you will need the following files from the **C:\msys64\mingw64\bin** directory:
     
     -   `ffmpeg.exe`
     -   `libwinpthread-1.dll`
