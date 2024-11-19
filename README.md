@@ -104,7 +104,7 @@ Follow the steps below to install a minimal FFmpeg build with GIF support.
     -   `zlib1.dll` **C:\msys64\mingw64\bin**
 8.  **Cleanup**  
     Remove unnecessary files and keep only the required binaries and DLLs by running:  
-    `find . -maxdepth 1 ! -name '.' ! -name 'libwinpthread-1.dll' ! -name 'libiconv-2.dll' ! -name 'zlib1.dll' ! -name 'ffmpeg.exe' -exec rm -rf {} +`
+    `find . -maxdepth 1 ! -name '.' ! -name 'ffmpeg.exe' ! -name 'libbz2-1.dll' ! -name 'libiconv-2.dll' ! -name 'liblzma-5.dll' ! -name 'libwinpthread-1.dll' ! -name 'zlib1.dll' -exec rm -rf {} +`
 
 ### **5. Build the Project**
 
