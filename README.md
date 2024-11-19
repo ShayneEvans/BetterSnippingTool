@@ -35,9 +35,91 @@ The Better Snipping Tool was born from a simple annoyance: the extra click requi
 - A shortcut should appear on your desktop, you're now ready to snip!
 
 ### 2. Compile Yourself
-- git clone https://github.com/yourusername/BetterSnippingTool.git
-- Choose to use the pre compiled minimal build of FFmpeg or create/download your own.
-- Run it in Visual Studio.
+#### **1. Prerequisites**
+
+Before building, ensure you have the following installed:
+
+-   [Visual Studio](https://visualstudio.microsoft.com/) (Community Edition is free)
+    -   During installation, include:
+        -   **.NET Desktop Development workload**
+        -   **Windows Forms support**
+-   Microsoft Windows Desktop Runtime - 8.0.0 (x64)
+
+#### **2. Clone the Repository**
+Download the source code:
+`git clone https://github.com/ShayneEvans/BetterSnippingTool.git && cd BetterSnippingTool`
+
+### **3. Open the Project**
+
+1.  Locate the solution file (e.g., `BetterSnippingTool.sln`).
+2.  Open it with Visual Studio.
+### **4. Install Dependencies**
+1.  In Visual Studio, go to **Tools > NuGet Package Manager > Manage NuGet Packages for Solution**.
+2.  Restore the required dependencies by clicking the **Restore** button or running:
+- **Dependency**: `WindowsAPICodePack` version `8.0.4`
+
+
+### **Install FFmpeg (Minimal Build with GIF Support)**
+
+Follow the steps below to install a minimal FFmpeg build with GIF support.
+
+#### **Step-by-Step Guide**
+
+1.  **Install MSYS2**  
+    Download and install MSYS2 from [msys2.org](https://www.msys2.org/).
+    
+2.  **Install Build Tools**  
+    Open the MSYS2 terminal and run the following command:  
+    `pacman -S base-devel mingw-w64-x86_64-toolchain git yasm pkg-config`
+    
+3.  **Download the FFmpeg Source**  
+    Clone the FFmpeg repository and navigate to the directory:  
+    `git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg`  
+    `cd ffmpeg`
+    
+4.  **Install Required Libraries**  
+    Install the necessary libraries (`libpng` and `zlib`):  
+    `pacman -S mingw-w64-x86_64-libpng mingw-w64-x86_64-zlib`
+    
+5.  **Configure FFmpeg with Minimal Settings**  
+    Run the following command to configure FFmpeg with only the necessary options for GIF support:  
+    `./configure --disable-everything --enable-demuxer=image2 --enable-decoder=png --enable-muxer=gif --enable-encoder=gif --enable-encoder=png --enable-filter=palettegen --enable-filter=paletteuse --enable-filter=scale --extra-cflags="-I/mingw64/include" --extra-ldflags="-L/mingw64/lib"`
+    
+    -   If you encounter the error `gcc is unable to create an executable file`, install additional MinGW libraries with the following command:  
+        `pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-pkg-config mingw-w64-x86_64-zlib`
+6.  **Compile FFmpeg**  
+    Run the following command to compile FFmpeg:  
+    `make -j4`
+    
+7.  **Gather Required Files**  
+    After the build completes, you will need the following files from the **MinGW/bin** directory:
+    
+    -   `ffmpeg.exe`
+    -   `libwinpthread-1.dll`
+    -   `libiconv-2.dll`
+    -   `zlib1.dll`
+8.  **Cleanup**  
+    Remove unnecessary files and keep only the required binaries and DLLs by running:  
+    `find . -maxdepth 1 ! -name '.' ! -name 'libwinpthread-1.dll' ! -name 'libiconv-2.dll' ! -name 'zlib1.dll' ! -name 'ffmpeg.exe' -exec rm -rf {} +`
+
+### **5. Build the Project**
+
+1.  In Visual Studio, go to **Build > Build Solution** or press `Ctrl+Shift+B`.
+2.  The build will generate an `.exe` file in one of the following directories:
+    -   For Debug builds: `bin\Debug`
+    -   For Release builds: `bin\Release`
+### **6. Run the Application**
+
+1.  Navigate to the output folder (`bin\Debug` or `bin\Release`).
+2.  Locate the `.exe` file (e.g., `BetterSnippingTool.exe`).
+3.  Double-click to run the program.
+
+### **7. Troubleshooting**
+
+-   If you encounter issues during the build:
+    -   Ensure all prerequisites are installed.
+    -   Check the target framework compatibility on your system.
+-   Feel free to open an issue in the repository for further assistance.
 
 # Architecture
 The Better Snipping Tool is built entirely in C# with WinForms providing the graphical user interface (GUI). It offers advanced functionality for capturing and editing screenshots, creating GIFs, and managing user settings efficiently.
