@@ -61,7 +61,7 @@ Download the source code:
 🎉 **You're Ready to Run the Program!**   
 All necessary C# dependencies have been installed, and the program is ready to run. Everything is setup and ready to build. A minimal FFmpeg build is included with the project for your convenience. However, if you prefer not to use the provided build, you can compile FFmpeg yourself by following the steps outlined below. If not skip to the Buld the Project section.
 
-### **Install FFmpeg (Minimal Build with GIF Support)**
+### **OPTIONAL: Install FFmpeg (Minimal Build with GIF Support)**
 
 Follow the steps below to install a minimal FFmpeg build with GIF support.
 
