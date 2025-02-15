@@ -397,9 +397,15 @@ namespace BetterSnippingTool.Forms
         {
             int start_frame = getFrameNumber(Path.GetFileName(trimStartDir));
             int end_frame = getFrameNumber(Path.GetFileName(trimEndDir));
+            Console.WriteLine(start_frame);
+            Console.WriteLine(end_frame);
             string trimmed_output_path = Path.Combine(FileUtilities.GifTempDir, $"output_{AppConfig.Instance.FPS}_trimmed.gif");
-            //User must select a starting and ending frame to trim
-            if (trimStartDir != null && trimEndDir != null)
+			//User must select a starting and ending frame to trim
+			if (File.Exists(trimmed_output_path))
+			{
+				File.Delete(trimmed_output_path);
+			}
+			if (trimStartDir != null && trimEndDir != null)
             {
                 FFmpeg.run_command(FileUtilities.FFmpegDir,
                     $"-framerate {AppConfig.Instance.FPS} -start_number {start_frame} -i \"{Path.Combine(FileUtilities.GifTempScreenshotsDir, "frame_%d.png")}\" " +

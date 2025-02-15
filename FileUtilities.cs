@@ -27,9 +27,10 @@ namespace BetterSnippingTool.Utilities
             GifTempDir = Path.Combine(BaseTempDir, "GIF");
             GifTempScreenshotsDir = Path.Combine(GifTempDir, "GIF_Temp_Screenshots");
             ProfilesDir = Path.Combine(BaseTempDir, "Profiles");
+			Console.WriteLine(GifTempDir);
 
-            //Create necessary temp folders if not already created
-            CreateTempFolders();
+			//Create necessary temp folders if not already created
+			CreateTempFolders();
 
             //Initialize the button image paths
             ButtonImagePaths = InitializeButtonImagePaths();

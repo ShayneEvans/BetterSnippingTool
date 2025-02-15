@@ -18,20 +18,21 @@ namespace BetterSnippingTool.Forms
         public BetterSnippingToolForm(bool isGIFMode)
         {
             this.isGIFMode = isGIFMode;
-            //Obtaining the primary screen index
-            currentScreenIndex = getPrimaryScreenIndex();
+            //Obtaining the current screen index
+            currentScreenIndex = getCurrentScreenIndex();
             this.Icon = new Icon(FileUtilities.ButtonImagePaths["BS_Logo"]);
-            this.Bounds = GetAllScreensBounds();
             InitializeComponent();
             this.MouseDown += new MouseEventHandler(Form_MouseDown);
             this.MouseMove += new MouseEventHandler(Form_MouseMove);
             this.MouseUp += new MouseEventHandler(Form_MouseUp);
             this.KeyDown += new KeyEventHandler(Form_KeyDown);
-        }
+			this.Bounds = Screen.AllScreens[currentScreenIndex].Bounds;
+		}
 
         private void InitializeComponent()
         {
-            this.BackColor = System.Drawing.Color.White;
+			this.StartPosition = FormStartPosition.Manual;
+			this.BackColor = System.Drawing.Color.White;
             this.FormBorderStyle = FormBorderStyle.None;
             this.Cursor = CursorUtilities.LoadCustomCursor(FileUtilities.ButtonImagePaths["green_crosshair"]);
             this.Opacity = 0.40;
@@ -40,31 +41,13 @@ namespace BetterSnippingTool.Forms
             this.SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer, true);
         }
 
-        //Function used to obtain the index of the primary screen so that program always opens on it/displays screenshot to it without switch.
-        private int getPrimaryScreenIndex()
+        //Function used to obtain the current screen index so the form can open on whichever screen the user's cursor is on.
+        private int getCurrentScreenIndex()
         {
-            for (int i = 0; i < Screen.AllScreens.Length; i++)
-            {
-                if (Screen.AllScreens[i].Primary)
-                {
-                    return i;
-                }
-            }
-
-            return 0;
-        }
-
-        //Returns the combined screen bounds of all displays
-        private System.Drawing.Rectangle GetAllScreensBounds()
-        {
-            System.Drawing.Rectangle allScreensBounds = Screen.AllScreens[0].Bounds;
-            foreach (Screen screen in Screen.AllScreens)
-            {
-                allScreensBounds = System.Drawing.Rectangle.Union(allScreensBounds, screen.Bounds);
-            }
-
-            return allScreensBounds;
-        }
+			Screen currentScreen = Screen.FromPoint(Cursor.Position);
+			int screenIndex = Array.IndexOf(Screen.AllScreens, currentScreen);
+			return screenIndex;
+		}
 
         //On left click set isDragging to true
         private void Form_MouseDown(object? sender, MouseEventArgs e)
@@ -147,11 +130,11 @@ namespace BetterSnippingTool.Forms
                 this.Close();
             }
 
-            else if (e.KeyCode == Keys.Right)
+            else if (e.KeyCode == Keys.D || e.KeyCode == Keys.Right)
             {
                 MoveToNextScreen();
             }
-            else if (e.KeyCode == Keys.Left)
+            else if (e.KeyCode == Keys.A || e.KeyCode == Keys.Left)
             {
                 MoveToPreviousScreen();
             }
