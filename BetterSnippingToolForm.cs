@@ -4,7 +4,7 @@ using BetterSnippingTool.Utilities;
 
 namespace BetterSnippingTool.Forms
 {
-    //BetterSnippingTool form
+    // BetterSnippingTool form
     public class BetterSnippingToolForm : Form
     {
         //Current Screen Index used to switch between multiple displays with arrows keys, temp solution until find out how to highlight all windows (might be imp)
