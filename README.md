@@ -58,8 +58,10 @@ Download the source code:
 2.  Restore the required dependencies by clicking the **Restore** button or running:
 - **Dependency**: `WindowsAPICodePack` version `8.0.4`
 
+🎉 **You're Ready to Run the Program!**   
+All necessary C# dependencies have been installed, and the program is ready to run. Everything is setup and ready to build. A minimal FFmpeg build is included with the project for your convenience. However, if you prefer not to use the provided build, you can compile FFmpeg yourself by following the steps outlined below. If not skip to the Buld the Project section.
 
-### **Install FFmpeg (Minimal Build with GIF Support)**
+### **OPTIONAL: Install FFmpeg (Minimal Build with GIF Support)**
 
 Follow the steps below to install a minimal FFmpeg build with GIF support.
 
@@ -87,20 +89,24 @@ Follow the steps below to install a minimal FFmpeg build with GIF support.
     
     -   If you encounter the error `gcc is unable to create an executable file`, install additional MinGW libraries with the following command:  
         `pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-pkg-config mingw-w64-x86_64-zlib`
+    -   If this doesn't work it is possible GCC isn't installed. This can be checked by doing `gcc --version`, if it doesn't work it's not installed. Execute this 	command to install gcc: `pacman -S mingw-w64-x86_64-gcc`. if `gcc --version` doesn't work after this make sure it appears in your PATH. The MSYS2 MinGW 	environment should automatically set this up, but you can verify by checking: `echo $PATH`. If the output does not include `/mingw64/bin` then add it 		manually with `export PATH=$PATH:/mingw64/bin`. After this hopefully `gcc --version` should work.
+    -   Another potential error will be `nasm not found or too old. Please install/pdate nasm or use --disablex86asm for a build without hand-optimzied assembly` 	this can be remedied with `pacman -S nasm`.
 6.  **Compile FFmpeg**  
     Run the following command to compile FFmpeg:  
     `make -j4`
     
 7.  **Gather Required Files**  
-    After the build completes, you will need the following files from the **MinGW/bin** directory:
+    After the build completes, you will need the following files:
     
-    -   `ffmpeg.exe`
-    -   `libwinpthread-1.dll`
-    -   `libiconv-2.dll`
-    -   `zlib1.dll`
+    -   `ffmpeg.exe` **\ffmpeg**
+    -   `libbz2-1.dll` **C:\msys64\mingw64\bin**
+    -   `libiconv-2.dll` **C:\msys64\mingw64\bin**
+    -   `liblzma-5.dll` **C:\msys64\mingw64\bin**
+    -   `libwinpthread-1.dll` **C:\msys64\mingw64\bin**
+    -   `zlib1.dll` **C:\msys64\mingw64\bin**
 8.  **Cleanup**  
     Remove unnecessary files and keep only the required binaries and DLLs by running:  
-    `find . -maxdepth 1 ! -name '.' ! -name 'libwinpthread-1.dll' ! -name 'libiconv-2.dll' ! -name 'zlib1.dll' ! -name 'ffmpeg.exe' -exec rm -rf {} +`
+    `find . -maxdepth 1 ! -name '.' ! -name 'ffmpeg.exe' ! -name 'libbz2-1.dll' ! -name 'libiconv-2.dll' ! -name 'liblzma-5.dll' ! -name 'libwinpthread-1.dll' ! -name 'zlib1.dll' -exec rm -rf {} +`
 
 ### **5. Build the Project**
 
