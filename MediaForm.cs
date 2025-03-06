@@ -659,9 +659,12 @@ namespace BetterSnippingTool.Forms
 
         private void CenterFormOnMonitor(int monitorIndex)
         {
+            int screenWidth = Screen.AllScreens[monitorIndex].Bounds.Width;
+            int screenHeight = Screen.AllScreens[monitorIndex].Bounds.Height;
+
             //Adjust the form size to include padding
             //This is to account for trim text fitting in without resize on smaller gifs
-            if(pictureBox.Image.Width < 600) 
+            if (pictureBox.Image.Width < 600) 
             {
                 this.ClientSize = new Size((pictureBox.Image.Width + 550) + 2 * padding, pictureBox.Image.Height + 2 * padding);
             }
@@ -675,6 +678,12 @@ namespace BetterSnippingTool.Forms
             Rectangle screenBounds = Screen.AllScreens[monitorIndex].Bounds;
             this.StartPosition = FormStartPosition.Manual;
             this.Location = new Point(screenBounds.X + (screenBounds.Width - this.Width) / 2, screenBounds.Y + (screenBounds.Height - this.Height) / 2);
+
+            //Maximize winform if the snip dimensions are greater than or equal to 85% of monitor resolution
+            if (this.Width * this.Height >= (screenWidth * screenHeight) * .85)
+            {
+                this.WindowState = FormWindowState.Maximized;
+            }
         }
 
         private void Form_KeyDown(object? sender, KeyEventArgs e)
