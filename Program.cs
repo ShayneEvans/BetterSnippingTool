@@ -15,6 +15,8 @@ namespace BetterSnippingTool
             AppConfig config = AppConfig.Instance;
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+            //Used so that screen scaling will not have an effect on screen capture area
+            Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
             Application.Run(new BetterSnippingToolForm(false));
         }
     }
