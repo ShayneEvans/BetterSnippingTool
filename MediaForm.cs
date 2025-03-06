@@ -680,7 +680,7 @@ namespace BetterSnippingTool.Forms
             this.Location = new Point(screenBounds.X + (screenBounds.Width - this.Width) / 2, screenBounds.Y + (screenBounds.Height - this.Height) / 2);
 
             //Maximize winform if the snip dimensions are greater than or equal to 85% of monitor resolution
-            if (this.Width * this.Height >= (screenWidth * screenHeight) * .85)
+            if (this.Width >= screenWidth  * .85 || this.Height >= screenHeight * .85)
             {
                 this.WindowState = FormWindowState.Maximized;
             }
